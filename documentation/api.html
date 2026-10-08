@@ -63,6 +63,11 @@
         <tr><td>POST</td><td><code>/api/auth/logout</code></td><td>public</td><td>Supprime le cookie.</td></tr>
         <tr><td>GET</td><td><code>/api/auth/me</code></td><td><span class="tag">auth</span></td><td>Profil de l'utilisateur connecté.</td></tr>
         <tr><td>PATCH</td><td><code>/api/auth/me</code></td><td><span class="tag">auth</span></td><td>Modifie le profil (nom affiché, avatar).</td></tr>
+        <tr><td>PATCH</td><td><code>/api/auth/username</code></td><td><span class="tag">auth</span></td><td>Change le pseudo <code>{ username }</code>. Le pseudo sert aussi de nom affiché. Limité à 20 tentatives par IP toutes les 15 minutes.</td></tr>
+        <tr><td>PATCH</td><td><code>/api/auth/password</code></td><td><span class="tag">auth</span></td><td>Change le mot de passe <code>{ current_password, new_password }</code>. Le mot de passe actuel est vérifié. Même limite que ci-dessus.</td></tr>
+        <tr><td>POST</td><td><code>/api/auth/avatar</code></td><td><span class="tag">auth</span></td><td>Enregistre la photo <code>{ image }</code> (data URL JPEG déjà réduite par le navigateur, 300 Ko maximum). Stockée dans la table <code>user_avatars</code>.</td></tr>
+        <tr><td>DELETE</td><td><code>/api/auth/avatar</code></td><td><span class="tag">auth</span></td><td>Retire la photo : l'icône reprend l'initiale du nom.</td></tr>
+        <tr><td>GET</td><td><code>/api/auth/avatar/:id</code></td><td><span class="tag">auth</span></td><td>Image de profil d'un utilisateur (visible des amis).</td></tr>
       </tbody>
     </table>
 
@@ -127,7 +132,7 @@
     <table>
       <thead><tr><th>Méthode</th><th>Route</th><th>Description</th></tr></thead>
       <tbody>
-        <tr><td>GET</td><td><code>/api/stats</code></td><td>Temps de visionnage, répartition par genre, évolution mensuelle.</td></tr>
+        <tr><td>GET</td><td><code>/api/stats</code></td><td>Statistiques du visionné uniquement (épisodes cochés, films vus) : temps total, genres en minutes vues, évolution mensuelle, meilleures séries et films notés, revisionnages, note moyenne, séries de jours, rythme par jour de la semaine et par heure.</td></tr>
         <tr><td>GET</td><td><code>/api/calendar</code></td><td>Prochains épisodes des séries suivies.</td></tr>
         <tr><td>POST</td><td><code>/api/import</code></td><td>Import « au mieux » d'une liste { shows: [{ title, watched_episodes }] }. Renvoie un rapport (voir Fonctionnement).</td></tr>
       </tbody>

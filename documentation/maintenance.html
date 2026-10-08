@@ -87,8 +87,8 @@ docker compose exec backend sh -c "wget -qO- http://localhost:5000/api/health"</
         <code>recompute-status</code> ne sont protégées que par la connexion, pas par un rôle administrateur.
       </li>
       <li>
-        <strong>Limitation des tentatives</strong> : 20 requêtes par IP toutes les 15 minutes sur <code>/api/auth/login</code>
-        et <code>/api/auth/register</code>. Le compteur est en mémoire, il repart à zéro au redémarrage du backend.
+        <strong>Limitation des tentatives</strong> : 20 requêtes par IP toutes les 15 minutes sur <code>/api/auth/login</code>,
+        <code>/api/auth/register</code>, <code>/api/auth/username</code> et <code>/api/auth/password</code>. Le compteur est en mémoire, il repart à zéro au redémarrage du backend.
       </li>
       <li>
         <strong>Cookie <code>Secure</code></strong> : désactivé par défaut (HTTP local). Mettre <code>COOKIE_SECURE=true</code>
