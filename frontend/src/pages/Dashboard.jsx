@@ -10,7 +10,7 @@ import Pagination from '../components/Pagination.jsx';
 const WATCHING_PER_PAGE = 10;
 
 // Tableau de bord : même identité que les pages de connexion (encre chaude, Fraunces, ambre).
-// Les composants partagés (ShowCard, ProgressBar...) ne sont pas modifiés : le style est local à cette page.
+// Le style est local à cette page ; seuls StatusMenu et ProgressBar sont partagés.
 export default function Dashboard() {
   const { user } = useAuth();
   const { t, locale } = useI18n();

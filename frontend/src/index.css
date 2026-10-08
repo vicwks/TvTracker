@@ -22,30 +22,6 @@ body {
   }
 }
 
-.card {
-  @apply bg-zinc-900/70 border border-zinc-800/80 rounded-xl overflow-hidden shadow-md shadow-black/20 transition-all duration-200;
-}
-
-.card:hover {
-  @apply border-zinc-700 shadow-lg shadow-black/30;
-}
-
-.section-title {
-  @apply text-lg font-semibold text-zinc-100 tracking-tight;
-}
-
-.btn-primary {
-  @apply bg-accent hover:bg-accent-dark text-zinc-950 font-medium rounded-lg transition-colors;
-}
-
-.btn-secondary {
-  @apply bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg transition-colors;
-}
-
-.btn-danger {
-  @apply bg-rose-950 hover:bg-rose-900 text-rose-300 rounded-lg transition-colors;
-}
-
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
