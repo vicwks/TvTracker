@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import client from '../api/client.js';
-import ShowCard from '../components/ShowCard.jsx';
-import ProgressBar from '../components/ProgressBar.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import StatusMenu from '../components/StatusMenu.jsx';
 
+// Tableau de bord : même identité que les pages de connexion (encre chaude, Fraunces, ambre).
+// Les composants partagés (ShowCard, ProgressBar...) ne sont pas modifiés : le style est local à cette page.
 export default function Dashboard() {
+  const { user } = useAuth();
   const [shows, setShows] = useState([]);
   const [movies, setMovies] = useState([]);
   const [calendar, setCalendar] = useState([]);
@@ -34,7 +36,7 @@ export default function Dashboard() {
         const detail = err.response?.data?.details ? ` (${err.response.data.details})` : '';
         setError(
           (err.response?.data?.error ||
-            "Impossible de charger le dashboard. Vérifie que le backend tourne bien et que la migration de base de données a été relancée (npm run migrate).") +
+            "Impossible de charger le tableau de bord. Vérifie que le backend tourne bien et que la migration de base de données a été relancée (npm run migrate).") +
             detail
         );
       })
@@ -50,26 +52,40 @@ export default function Dashboard() {
 
   const watching = shows.filter((s) => s.status === 'watching');
   const hours = stats ? Math.round(stats.totalMinutes / 60) : 0;
+  // Affiche de la première série en cours, en toile de fond discrète de l'en-tête.
+  const backdrop = watching.find((s) => s.poster_url)?.poster_url;
 
   const q = query.trim().toLowerCase();
   const searchResults = q
     ? [
         ...shows
           .filter((s) => s.title.toLowerCase().includes(q))
-          .map((s) => ({ type: 'show', id: s.id, title: s.title, poster_url: s.poster_url, status: s.status })),
+          .map((s) => ({ type: 'show', id: s.id, title: s.title, poster_url: s.poster_url })),
         ...movies
           .filter((m) => m.title.toLowerCase().includes(q))
           .map((m) => ({ type: 'movie', id: m.id, title: m.title, poster_url: m.poster_url })),
       ].slice(0, 8)
     : [];
 
-  if (loading) return <p className="p-8 text-zinc-500">Chargement...</p>;
+  if (loading) {
+    return (
+      <div className="flex min-h-[60dvh] items-center justify-center bg-ink font-ui text-ink-muted">
+        <p className="animate-pulse text-sm">Chargement…</p>
+      </div>
+    );
+  }
+
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="card p-6 border-rose-900">
-          <p className="text-rose-300 text-sm">{error}</p>
-          <button onClick={load} className="btn-secondary text-xs px-3 py-1.5 mt-3">
+      <div className="min-h-[60dvh] bg-ink px-6 py-16 font-ui text-paper sm:px-8">
+        <div className="mx-auto max-w-xl">
+          <p className="font-display text-2xl">Oups.</p>
+          <p className="mt-3 text-sm text-danger">{error}</p>
+          <button
+            type="button"
+            onClick={load}
+            className="mt-6 rounded-md border border-ink-line px-4 py-2 text-sm text-paper transition hover:border-signal hover:text-signal"
+          >
             Réessayer
           </button>
         </div>
@@ -78,143 +94,237 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-10">
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Bon retour 👋</h1>
-        <p className="text-sm text-zinc-500 mt-1">Voici où tu en es dans tes visionnages.</p>
-      </div>
+    <div className="min-h-screen bg-ink font-ui text-paper">
+      <header className="relative overflow-hidden border-b border-ink-line">
+        {backdrop && (
+          <div className="absolute inset-0" aria-hidden="true">
+            <img src={backdrop} alt="" className="h-full w-full object-cover opacity-25 blur-[2px]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-ink/30 via-ink/85 to-ink" />
+          </div>
+        )}
 
-      <div className="relative max-w-md">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="🔍 Retrouver une série ou un film déjà suivi..."
-          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-accent"
-        />
-        {q && (
-          <div className="absolute z-20 mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden">
-            {searchResults.length === 0 ? (
-              <p className="text-xs text-zinc-500 px-3 py-3">Aucun résultat pour "{query}".</p>
-            ) : (
-              searchResults.map((r) => (
-                <Link
-                  key={`${r.type}-${r.id}`}
-                  to={r.type === 'show' ? `/show/${r.id}` : `/movie/${r.id}`}
-                  onClick={() => setQuery('')}
-                  className="flex items-center gap-3 px-3 py-2 hover:bg-zinc-800 transition-colors"
-                >
-                  {r.poster_url ? (
-                    <img src={r.poster_url} alt="" className="w-8 h-11 object-cover rounded shrink-0" />
-                  ) : (
-                    <div className="w-8 h-11 bg-zinc-800 rounded shrink-0" />
-                  )}
-                  <span className="text-sm text-zinc-200 truncate">{r.title}</span>
-                  <span className="text-[10px] text-zinc-500 ml-auto shrink-0">
-                    {r.type === 'show' ? 'Série' : 'Film'}
-                  </span>
-                </Link>
-              ))
+        <div className="relative mx-auto max-w-6xl px-6 pb-12 pt-14 sm:px-8 sm:pt-20">
+          <p className="animate-rise text-xs uppercase tracking-[0.25em] text-ink-muted">Tableau de bord</p>
+          <h1
+            className="animate-rise mt-4 font-display text-5xl font-medium leading-[1.02] tracking-tight sm:text-7xl"
+            style={{ animationDelay: '80ms' }}
+          >
+            Bon retour,{' '}
+            <span className="italic text-signal">{user?.display_name || user?.username}</span>.
+          </h1>
+          <p className="animate-rise mt-4 max-w-md text-ink-muted" style={{ animationDelay: '160ms' }}>
+            Voici où tu en es dans tes visionnages.
+          </p>
+
+          <div className="animate-rise relative mt-10 max-w-md" style={{ animationDelay: '240ms' }}>
+            <label htmlFor="dashboard-search" className="sr-only">
+              Retrouver une série ou un film suivi
+            </label>
+            <div className="group flex items-center gap-3 border-b border-ink-line transition-colors focus-within:border-signal">
+              <svg
+                viewBox="0 0 24 24"
+                className="h-4 w-4 shrink-0 text-ink-muted transition-colors group-focus-within:text-signal"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                id="dashboard-search"
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Retrouver une série ou un film suivi"
+                className="min-w-0 flex-1 bg-transparent py-2.5 text-base text-paper placeholder:text-ink-muted/60 focus:outline-none"
+              />
+            </div>
+
+            {q && (
+              <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-md border border-ink-line bg-ink-soft shadow-2xl shadow-black/50">
+                {searchResults.length === 0 ? (
+                  <p className="px-4 py-3 text-sm text-ink-muted">Aucun résultat pour « {query} ».</p>
+                ) : (
+                  searchResults.map((r) => (
+                    <Link
+                      key={`${r.type}-${r.id}`}
+                      to={r.type === 'show' ? `/show/${r.id}` : `/movie/${r.id}`}
+                      onClick={() => setQuery('')}
+                      className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-ink"
+                    >
+                      {r.poster_url ? (
+                        <img src={r.poster_url} alt="" className="h-11 w-8 shrink-0 rounded-sm object-cover" />
+                      ) : (
+                        <div className="h-11 w-8 shrink-0 rounded-sm bg-ink-line" />
+                      )}
+                      <span className="min-w-0 flex-1 truncate font-display text-base text-paper">{r.title}</span>
+                      <span className="shrink-0 text-[10px] uppercase tracking-[0.2em] text-ink-muted">
+                        {r.type === 'show' ? 'Série' : 'Film'}
+                      </span>
+                    </Link>
+                  ))
+                )}
+              </div>
             )}
           </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl space-y-16 px-6 py-12 sm:px-8">
+        {stats && (
+          <section
+            className="animate-rise grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:divide-x sm:divide-ink-line"
+            style={{ animationDelay: '320ms' }}
+          >
+            <Stat value={`${hours} h`} label="Heures visionnées" accent />
+            <Stat value={watching.length} label="Séries en cours" />
+            <Stat value={stats.episodesWatched} label="Épisodes vus" />
+            <Stat value={stats.moviesWatched} label="Films vus" />
+          </section>
         )}
-      </div>
 
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="card p-4 text-center">
-            <p className="text-2xl font-bold text-accent">{hours}h</p>
-            <p className="text-xs text-zinc-500 mt-1">Temps total visionné</p>
-          </div>
-          <div className="card p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{watching.length}</p>
-            <p className="text-xs text-zinc-500 mt-1">Séries en cours</p>
-          </div>
-          <div className="card p-4 text-center">
-            <p className="text-2xl font-bold text-zinc-100">{stats.episodesWatched}</p>
-            <p className="text-xs text-zinc-500 mt-1">Épisodes vus</p>
-          </div>
-          <div className="card p-4 text-center">
-            <p className="text-2xl font-bold text-zinc-100">{stats.moviesWatched}</p>
-            <p className="text-xs text-zinc-500 mt-1">Films vus</p>
-          </div>
-        </div>
-      )}
+        <section>
+          <SectionHeader title="En cours de visionnage" to="/shows" linkLabel="Toutes mes séries" />
 
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title">📺 En cours de visionnage</h2>
-          <Link to="/shows" className="text-xs text-accent hover:underline">
-            Voir toutes mes séries →
-          </Link>
-        </div>
-
-        {watching.length === 0 ? (
-          <div className="card p-8 text-center">
-            <p className="text-zinc-400 text-sm">Aucune série en cours pour le moment.</p>
-            <Link to="/search" className="text-accent text-sm hover:underline mt-2 inline-block">
-              Va en chercher une à suivre →
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {watching.map((show) => (
-              <ShowCard
-                key={show.id}
-                item={show}
-                linkTo={`/show/${show.id}`}
-                cornerBadge={
-                  <StatusMenu status={show.status} onChange={(status) => changeStatus(show.id, status)} />
-                }
-                footer={
-                  <ProgressBar
-                    value={show.watched_episodes}
-                    max={show.total_episodes}
-                    status={show.status}
-                    className="mt-2"
-                  />
-                }
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title">🗓️ Prochains épisodes</h2>
-          <Link to="/calendar" className="text-xs text-accent hover:underline">
-            Voir le calendrier complet →
-          </Link>
-        </div>
-
-        {calendar.length === 0 ? (
-          <div className="card p-8 text-center">
-            <p className="text-zinc-400 text-sm">Rien de prévu dans les 14 prochains jours.</p>
-          </div>
-        ) : (
-          <div className="grid gap-2">
-            {calendar.map((ep) => (
-              <Link
-                key={ep.episode_id}
-                to={`/show/${ep.show_id}`}
-                className="card flex items-center gap-4 p-3 hover:border-zinc-700"
-              >
-                {ep.poster_url && (
-                  <img src={ep.poster_url} alt="" className="w-10 h-14 object-cover rounded-md shrink-0" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm text-zinc-100 truncate">{ep.show_title}</p>
-                  <p className="text-xs text-zinc-500 truncate">
-                    S{ep.season_number}E{ep.episode_number} — {ep.episode_title}
-                  </p>
-                </div>
-                <span className="text-xs text-zinc-500 shrink-0">{ep.air_date}</span>
+          {watching.length === 0 ? (
+            <Empty>
+              Aucune série en cours pour le moment.{' '}
+              <Link to="/search" className="text-signal underline-offset-4 hover:underline">
+                Va en chercher une à suivre
               </Link>
-            ))}
-          </div>
-        )}
-      </section>
+              .
+            </Empty>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {watching.map((show, i) => (
+                <WatchCard
+                  key={show.id}
+                  show={show}
+                  delay={i * 70}
+                  onStatusChange={(status) => changeStatus(show.id, status)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <SectionHeader title="Prochains épisodes" to="/calendar" linkLabel="Calendrier complet" />
+
+          {calendar.length === 0 ? (
+            <Empty>Rien de prévu dans les 14 prochains jours.</Empty>
+          ) : (
+            <ul className="divide-y divide-ink-line border-y border-ink-line">
+              {calendar.map((ep, i) => (
+                <li key={ep.episode_id} className="animate-rise" style={{ animationDelay: `${i * 60}ms` }}>
+                  <Link
+                    to={`/show/${ep.show_id}`}
+                    className="group flex items-center gap-5 px-2 py-4 transition-colors hover:bg-ink-soft"
+                  >
+                    {ep.poster_url ? (
+                      <img
+                        src={ep.poster_url}
+                        alt=""
+                        className="h-16 w-11 shrink-0 rounded-sm object-cover ring-1 ring-ink-line transition group-hover:ring-signal/60"
+                      />
+                    ) : (
+                      <div className="h-16 w-11 shrink-0 rounded-sm bg-ink-soft ring-1 ring-ink-line" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-display text-xl text-paper">{ep.show_title}</p>
+                      <p className="mt-1 truncate text-xs uppercase tracking-[0.18em] text-ink-muted">
+                        S{ep.season_number}E{ep.episode_number}
+                        {ep.episode_title ? ` · ${ep.episode_title}` : ''}
+                      </p>
+                    </div>
+                    <time
+                      dateTime={ep.air_date}
+                      className="shrink-0 text-sm tabular-nums text-signal transition-transform group-hover:-translate-x-1"
+                    >
+                      {formatDate(ep.air_date)}
+                    </time>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
     </div>
+  );
+}
+
+function formatDate(isoDate) {
+  if (!isoDate) return '';
+  const date = new Date(`${isoDate}T00:00:00`);
+  return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function SectionHeader({ title, to, linkLabel }) {
+  return (
+    <div className="mb-8 flex items-end justify-between gap-4 border-b border-ink-line pb-4">
+      <h2 className="font-display text-3xl font-medium tracking-tight">{title}</h2>
+      <Link
+        to={to}
+        className="shrink-0 text-sm text-signal underline-offset-4 hover:underline"
+      >
+        {linkLabel} →
+      </Link>
+    </div>
+  );
+}
+
+function Stat({ value, label, accent = false }) {
+  return (
+    <div className="text-center sm:px-6">
+      <p className={`font-display text-4xl font-medium tabular-nums sm:text-5xl ${accent ? 'text-signal' : 'text-paper'}`}>
+        {value}
+      </p>
+      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-ink-muted">{label}</p>
+    </div>
+  );
+}
+
+function Empty({ children }) {
+  return <p className="border-l border-signal/60 pl-4 text-sm text-ink-muted">{children}</p>;
+}
+
+function WatchCard({ show, delay, onStatusChange }) {
+  const total = show.total_episodes || 0;
+  const watched = show.watched_episodes || 0;
+  const percent = total ? Math.min(100, Math.round((watched / total) * 100)) : 0;
+
+  return (
+    <article className="group relative animate-rise" style={{ animationDelay: `${delay}ms` }}>
+      <Link to={`/show/${show.id}`} className="block">
+        <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-ink-soft ring-1 ring-ink-line transition duration-500 group-hover:-translate-y-1 group-hover:ring-signal/60 group-hover:shadow-[0_18px_40px_-18px_rgba(245,165,36,0.55)]">
+          {show.poster_url ? (
+            <img
+              src={show.poster_url}
+              alt={show.title}
+              loading="lazy"
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center p-4 text-center text-xs text-ink-muted">
+              {show.title}
+            </div>
+          )}
+        </div>
+        <h3 className="mt-3 line-clamp-1 font-display text-lg text-paper">{show.title}</h3>
+        <p className="mt-1 text-xs tabular-nums text-ink-muted">
+          {watched} / {total} épisodes
+        </p>
+        <div className="mt-3 h-px w-full bg-ink-line" aria-hidden="true">
+          <div className="h-px bg-signal transition-all duration-700" style={{ width: `${percent}%` }} />
+        </div>
+      </Link>
+      <div className="absolute right-2 top-2">
+        <StatusMenu status={show.status} onChange={onStatusChange} />
+      </div>
+    </article>
   );
 }

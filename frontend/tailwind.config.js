@@ -25,9 +25,15 @@ export default {
           from: { transform: 'translateX(0)' },
           to: { transform: 'translateX(-50%)' },
         },
+        // Apparition douce vers le haut, utilisée sur le tableau de bord.
+        rise: {
+          from: { opacity: '0', transform: 'translateY(14px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
       },
       animation: {
         marquee: 'marquee 70s linear infinite',
+        rise: 'rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },

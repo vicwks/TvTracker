@@ -9,6 +9,13 @@ body {
   background-attachment: fixed;
 }
 
+/* Les apparitions à l'arrivée sont retirées si l'utilisateur réduit les mouvements. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise {
+    animation: none;
+  }
+}
+
 /* Pages de connexion et d'inscription : sur téléphone en hauteur réduite, le bandeau d'affiches est masqué
    pour que le formulaire tienne entièrement, sans défilement. */
 @media (max-width: 1023px) and (max-height: 760px) {
