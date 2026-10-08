@@ -21,14 +21,19 @@ export default {
         ui: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
       },
       keyframes: {
-        // Déplace la piste de la moitié de sa largeur : la deuxième copie prend la place de la première.
         marquee: {
           from: { transform: 'translateX(0)' },
           to: { transform: 'translateX(-50%)' },
         },
+        // Dérive très légère : quelques pixels et une rotation de quelques degrés.
+        drift: {
+          '0%, 100%': { transform: 'translate(0, 0) rotate(0deg)' },
+          '50%': { transform: 'translate(10px, -14px) rotate(8deg)' },
+        },
       },
       animation: {
         marquee: 'marquee 70s linear infinite',
+        drift: 'drift 20s ease-in-out infinite',
       },
     },
   },
