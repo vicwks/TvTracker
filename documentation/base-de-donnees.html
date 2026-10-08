@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Base de données — Documentation TV Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="/documentation/">TV Tracker · Docs</a>
+      <nav>
+        <a href="index.html">Accueil</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="docker.html">Docker</a>
+        <a href="base-de-donnees.html" aria-current="page">Base de données</a>
+        <a href="api.html">API</a>
+        <a href="fonctionnement.html">Fonctionnement</a>
+        <a href="maintenance.html">Maintenance</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Base de données</h1>
+    <p class="lead">MySQL 8.4, base <code>tv_tracker</code>, jeu de caractères <code>utf8mb4</code>. 12 tables.</p>
+
+    <h2>Principe : données globales et données par utilisateur</h2>
+    <p>
+      Le catalogue (séries, saisons, épisodes, films) est <strong>partagé</strong> entre tous les comptes : il est
+      rempli depuis TMDB une seule fois. Tout ce qui relève de la personne (son statut, ses épisodes vus, ses notes,
+      sa liste à voir) est rattaché à un <code>user_id</code>.
+    </p>
+
+    <h2>Tables du catalogue (partagées)</h2>
+    <table>
+      <thead><tr><th>Table</th><th>Rôle</th><th>Clés et contraintes</th></tr></thead>
+      <tbody>
+        <tr><td><code>shows</code></td><td>Séries TMDB (titre, affiche, genres, <code>episode_runtime</code>, statut TMDB)</td><td><code>tmdb_id</code> unique</td></tr>
+        <tr><td><code>seasons</code></td><td>Saisons d'une série (la saison 0 « Spéciaux » est exclue à la synchro)</td><td><code>(show_id, season_number)</code> unique, FK vers <code>shows</code></td></tr>
+        <tr><td><code>episodes</code></td><td>Épisodes d'une saison (durée sanitisée, voir Fonctionnement)</td><td><code>(season_id, episode_number)</code> unique, FK vers <code>seasons</code></td></tr>
+        <tr><td><code>movies</code></td><td>Films TMDB</td><td><code>tmdb_id</code> unique</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Tables de suivi (par utilisateur)</h2>
+    <table>
+      <thead><tr><th>Table</th><th>Rôle</th><th>Clés et contraintes</th></tr></thead>
+      <tbody>
+        <tr><td><code>show_tracking</code></td><td>Statut d'une série pour un utilisateur (<code>to_watch</code>, <code>watching</code>, <code>paused</code>, <code>completed</code>, <code>dropped</code>)</td><td><code>(user_id, show_id)</code> unique, FK vers <code>shows</code></td></tr>
+        <tr><td><code>watch_status</code></td><td>Épisode vu par un utilisateur, date, nombre de visionnages (<code>watch_count</code>)</td><td><code>(user_id, episode_id)</code> unique, FK vers <code>episodes</code></td></tr>
+        <tr><td><code>movie_status</code></td><td>Film vu ou non, par utilisateur, avec date</td><td><code>(user_id, movie_id)</code> unique, FK vers <code>movies</code></td></tr>
+        <tr><td><code>ratings</code></td><td>Note (decimal 3,1) sur un épisode, une saison, une série ou un film</td><td><code>(user_id, target_type, target_id)</code> unique</td></tr>
+        <tr><td><code>notes</code></td><td>Commentaire texte sur une cible (mêmes types que <code>ratings</code>)</td><td><code>(user_id, target_type, target_id)</code> unique</td></tr>
+        <tr><td><code>watchlist</code></td><td>Éléments « à voir » (séries ou films)</td><td><code>(user_id, target_type, target_id)</code> unique</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <code>target_type</code> et <code>target_id</code> forment une référence polymorphe : ils ne sont pas liés par une clé étrangère,
+      le contrôle se fait dans le code des routes.
+    </div>
+
+    <h2>Comptes et amis</h2>
+    <table>
+      <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>Pseudo unique (32 car. max), nom affiché, hash bcrypt du mot de passe, avatar optionnel.</td></tr>
+        <tr><td><code>friendships</code></td><td>Demande d'ami (<code>pending</code>) puis relation acceptée (<code>accepted</code>). Unicité sur <code>(requester_id, addressee_id)</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Diagramme simplifié des relations</h2>
+    <pre><code>shows ──< seasons ──< episodes ──< watch_status >── users
+  │                       │
+  └──< show_tracking >────┘  (user_id)           users ──< friendships >── users
+movies ──< movie_status >── users
+ratings / notes / watchlist  →  users  +  (target_type, target_id)</code></pre>
+
+    <h2>Migrations</h2>
+    <p>
+      Le schéma est défini par deux fichiers SQL dans <code>backend/src/db/migrations/</code> et par
+      <code>backend/src/db/migrate.js</code>. Ce dernier est le point d'entrée réel : il exécute les SQL,
+      puis applique les évolutions qui ne peuvent pas être écrites en SQL portable.
+    </p>
+    <table>
+      <thead><tr><th>Étape</th><th>Ce qu'elle fait</th></tr></thead>
+      <tbody>
+        <tr><td><code>001_init.sql</code></td><td>Crée la base et les tables du catalogue et de suivi (version mono-utilisateur d'origine).</td></tr>
+        <tr><td><code>002_users_and_social.sql</code></td><td>Crée <code>users</code> et <code>friendships</code>.</td></tr>
+        <tr><td>Ajouts dans <code>migrate.js</code></td><td>Ajoute <code>user_id</code> aux anciennes tables, remplace les anciennes clés uniques par des clés par utilisateur, supprime les saisons « Spéciaux », ajoute <code>watch_count</code>.</td></tr>
+      </tbody>
+    </table>
+    <p>Toutes les étapes sont <strong>idempotentes</strong> : relancer <code>migrate.js</code> ne supprime aucune donnée.</p>
+
+    <h3>Pourquoi des index « simples » avant de supprimer les anciennes clés</h3>
+    <p>
+      Sur <code>show_tracking</code>, <code>watch_status</code> et <code>movie_status</code>, la colonne de clé étrangère
+      n'avait qu'un index unique. MySQL refuse de supprimer un index dont une clé étrangère a besoin
+      (erreur 1553). La migration crée donc d'abord un index simple (<code>idx_show_id</code>, <code>idx_episode_id</code>,
+      <code>idx_movie_id</code>) puis retire l'ancien index unique. Sans cette étape, une base créée de zéro ne pouvait pas être migrée.
+    </p>
+
+    <h2>Inspecter la base</h2>
+    <pre><code>docker compose exec db mysql -uroot -proot_local tv_tracker -e "SHOW TABLES;"
+docker compose exec db mysql -uroot -proot_local tv_tracker -e "SELECT COUNT(*) FROM shows;"</code></pre>
+  </main>
+
+  <footer class="site">TV Tracker · documentation technique</footer>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fonctionnement — Documentation TV Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="/documentation/">TV Tracker · Docs</a>
+      <nav>
+        <a href="index.html">Accueil</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="docker.html">Docker</a>
+        <a href="base-de-donnees.html">Base de données</a>
+        <a href="api.html">API</a>
+        <a href="fonctionnement.html" aria-current="page">Fonctionnement</a>
+        <a href="maintenance.html">Maintenance</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Fonctionnement métier</h1>
+    <p class="lead">Les règles qui font vivre l'application : statuts, synchronisation TMDB, tâche planifiée, import et sécurité.</p>
+
+    <h2>Statuts d'une série</h2>
+    <p>Chaque utilisateur a son propre statut pour chaque série (table <code>show_tracking</code>).</p>
+    <table>
+      <thead><tr><th>Valeur</th><th>Libellé</th><th>Mis à jour automatiquement ?</th></tr></thead>
+      <tbody>
+        <tr><td><code>to_watch</code></td><td>À voir</td><td>Non</td></tr>
+        <tr><td><code>watching</code></td><td>En cours</td><td>Oui, retour depuis « Terminé » si un épisode redevient non vu</td></tr>
+        <tr><td><code>paused</code></td><td>En pause</td><td>Non</td></tr>
+        <tr><td><code>completed</code></td><td>Terminé</td><td>Oui, dès que tous les épisodes sont vus par cet utilisateur</td></tr>
+        <tr><td><code>dropped</code></td><td>Abandonné</td><td>Non</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Le calcul est fait par <code>refreshShowCompletion</code> (<code>backend/src/services/showStatus.js</code>).
+      Un épisode absent de <code>watch_status</code> pour l'utilisateur est considéré comme non vu.
+    </p>
+
+    <h2>Synchronisation TMDB</h2>
+    <p>
+      <code>syncShowFromTmdb</code> (<code>services/showSync.js</code>) crée ou met à jour une série, puis ses saisons
+      et ses épisodes, à partir de son identifiant TMDB. Quelques règles importantes :
+    </p>
+    <ul>
+      <li><strong>Saison 0 ignorée</strong> : les « Spéciaux » (bonus, making-of) ne sont pas importés.</li>
+      <li><strong>Durées plausibles seulement</strong> : toute durée supérieure à 240 minutes ou inférieure ou égale à 0 est ignorée (valeur mise à <code>NULL</code>). TMDB contient parfois des erreurs de saisie qui fausseraient les statistiques.</li>
+      <li><strong>Langue</strong> : toutes les requêtes TMDB sont faites en <code>fr-FR</code>.</li>
+      <li><strong>Réessais</strong> : sur une erreur <code>429</code> (limite de débit) ou <code>5xx</code>, le client réessaie jusqu'à 5 fois avec un délai croissant, ou selon l'en-tête <code>Retry-After</code>.</li>
+      <li><strong>Délai maximum</strong> : 10 secondes par requête, pour qu'un appel bloqué ne fige pas une route.</li>
+      <li><strong>Fraîcheur</strong> : une série synchronisée il y a moins de 24h n'est pas redemandée à TMDB lors d'un ajout ou d'un aperçu. Le bouton « Rafraîchir » et la tâche planifiée forcent la mise à jour.</li>
+      <li><strong>Upserts</strong> : les écritures utilisent <code>INSERT … ON DUPLICATE KEY UPDATE</code>, une requête par saison pour les épisodes. Deux synchronisations simultanées ne créent pas de doublon.</li>
+      <li><strong>Cache mémoire</strong> : tendances (30 min), genres (24 h), recherches (10 min) et détails de la watchlist (1 h) sont gardés en mémoire du backend, et perdus à son redémarrage.</li>
+    </ul>
+
+    <h2>Tâche planifiée</h2>
+    <p>
+      Chaque jour à <strong>6h00, heure de Paris</strong> (cron défini dans <code>cron/checkNewEpisodes.js</code>), le backend resynchronise
+      toutes les séries suivies par au moins un utilisateur avec le statut <code>watching</code> ou <code>to_watch</code>.
+      Cela fait apparaître les nouveaux épisodes et saisons annoncés sur TMDB. Une série en erreur est journalisée et
+      n'empêche pas les suivantes. Si une exécution est encore en cours à l'heure suivante, la nouvelle est ignorée.
+    </p>
+    <div class="note">
+      La tâche tourne dans le conteneur <code>backend</code>. Elle n'a lieu que si ce conteneur est démarré à 6h.
+      Pour la tester sans attendre, il faut la déclencher manuellement (par exemple via <code>POST /api/shows/:id/refresh</code>).
+    </div>
+
+    <h2>Revisionnage</h2>
+    <p>
+      Une même personne peut revoir un épisode. La colonne <code>watch_count</code> compte les visionnages : elle vaut 1 à la
+      première vision et augmente avec le bouton ↻ (<code>POST /api/episodes/:id/rewatch</code>). Les épisodes marqués vus avant l'introduction de
+      cette colonne ont été mis à 1 par la migration.
+    </p>
+
+    <h2>Import</h2>
+    <p>
+      Deux mécanismes existent :
+    </p>
+    <ul>
+      <li>
+        <strong>Import générique</strong> (<code>POST /api/import</code>) : pour chaque série du JSON, la première
+        correspondance TMDB est retenue. Le rapport renvoyé indique le titre trouvé et le nombre d'épisodes marqués.
+        <em>Attention</em> : une recherche ambiguë peut donc associer la mauvaise série. Vérifier le rapport.
+      </li>
+      <li>
+        <strong>Import TV Time</strong> (<code>backend/scripts/import-tvtime.js</code>, commande <code>npm run import:tvtime</code>) :
+        script ponctuel qui lit un fichier JSON généré à partir de l'export RGPD TV Time. Option <code>--user=pseudo</code> pour cibler un compte.
+        Le fichier <code>scripts/tvtime-payload.json</code> n'est pas dans le dépôt et doit être régénéré.
+      </li>
+    </ul>
+
+    <h2>Authentification</h2>
+    <table>
+      <thead><tr><th>Élément</th><th>Valeur</th></tr></thead>
+      <tbody>
+        <tr><td>Mots de passe</td><td>Hachés avec bcrypt (coût 12), jamais stockés en clair.</td></tr>
+        <tr><td>Session</td><td>JWT signé avec <code>JWT_SECRET</code>, durée 30 jours.</td></tr>
+        <tr><td>Transport</td><td>Cookie <code>token</code> HTTP-only, <code>SameSite=Lax</code>.</td></tr>
+        <tr><td>Protection des routes</td><td><code>requireAuth</code> (<code>middleware/requireAuth.js</code>) répond 401 sans jeton valide.</td></tr>
+        <tr><td>Premier compte</td><td>Le premier compte créé récupère les données déjà présentes en base (migration vers le mode multi-utilisateur).</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Statistiques</h2>
+    <p>
+      La page Stats agrège le temps de visionnage (mois, jours, heures), la répartition par genre et l'évolution mensuelle.
+      Le temps repose sur les durées d'épisodes et de films : une durée aberrante ou absente fausse le total.
+      La page propose donc deux actions de maintenance : « Nettoyer les durées aberrantes » et « Corriger les durées manquantes »
+      (routes <code>clean-runtimes</code> et <code>refresh-runtimes</code>).
+    </p>
+    <p>
+      La configuration <code>decimalNumbers: true</code> du pool MySQL renvoie les <code>SUM()</code> et <code>AVG()</code> en nombres
+      et non en texte, ce qui évite des erreurs d'addition côté JavaScript.
+    </p>
+  </main>
+
+  <footer class="site">TV Tracker · documentation technique</footer>
+</body>
+</html>

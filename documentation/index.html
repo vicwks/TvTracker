@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation — TV Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="/documentation/">TV Tracker · Docs</a>
+      <nav>
+        <a href="/documentation/" aria-current="page">Accueil</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="docker.html">Docker</a>
+        <a href="base-de-donnees.html">Base de données</a>
+        <a href="api.html">API</a>
+        <a href="fonctionnement.html">Fonctionnement</a>
+        <a href="maintenance.html">Maintenance</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Documentation technique</h1>
+    <p class="lead">
+      TV Tracker est une application de suivi de séries et de films : statuts de visionnage, épisodes vus,
+      notes, calendrier, statistiques et amis. Cette documentation décrit comment le projet est construit,
+      comment le lancer avec Docker et comment il fonctionne en interne.
+    </p>
+
+    <div class="note">
+      <strong>Accès local.</strong> Cette documentation est servie par Nginx à l'adresse
+      <code>http://localhost:8080/documentation</code>. Elle n'est pas protégée par mot de passe,
+      car l'environnement est local.
+    </div>
+
+    <h2>Par où commencer</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3><a href="docker.html">Lancer avec Docker</a></h3>
+        <p>Démarrer les trois conteneurs (base, backend, frontend) et vérifier qu'ils tournent.</p>
+      </div>
+      <div class="card">
+        <h3><a href="architecture.html">Architecture</a></h3>
+        <p>Les briques techniques, leurs rôles et la façon dont elles communiquent.</p>
+      </div>
+      <div class="card">
+        <h3><a href="base-de-donnees.html">Base de données</a></h3>
+        <p>Les tables, leurs relations, et le fonctionnement des migrations.</p>
+      </div>
+      <div class="card">
+        <h3><a href="api.html">Référence API</a></h3>
+        <p>Liste des routes HTTP exposées par le backend, avec leur protection.</p>
+      </div>
+      <div class="card">
+        <h3><a href="fonctionnement.html">Fonctionnement métier</a></h3>
+        <p>Statuts de suivi, synchronisation TMDB, tâche planifiée, import, authentification.</p>
+      </div>
+      <div class="card">
+        <h3><a href="maintenance.html">Maintenance</a></h3>
+        <p>Dépannage, points d'attention, dette technique connue et historique des modifications.</p>
+      </div>
+    </div>
+
+    <h2>Stack technique</h2>
+    <table>
+      <thead>
+        <tr><th>Couche</th><th>Technologie</th><th>Version / image</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Frontend</td><td>React 18, React Router 6, Tailwind CSS 3, Recharts, Vite 5</td><td>Build statique servi par Nginx 1.27</td></tr>
+        <tr><td>Backend</td><td>Node.js, Express 4, mysql2, bcryptjs, jsonwebtoken, node-cron, axios</td><td>Node 22 (image <code>node:22-alpine</code>)</td></tr>
+        <tr><td>Base de données</td><td>MySQL</td><td>MySQL 8.4 (image <code>mysql:8.4</code>)</td></tr>
+        <tr><td>Données externes</td><td>API TMDB (séries, films, saisons, épisodes, images)</td><td>Clé requise dans <code>backend/.env</code></td></tr>
+        <tr><td>Orchestration</td><td>Docker Compose</td><td><code>docker-compose.yml</code> à la racine</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Structure du dépôt</h2>
+    <pre><code>tv-tracker/
+├── docker-compose.yml        Orchestration des 3 services
+├── README.md                 Guide d'installation (historique, sans Docker)
+├── documentation/            Cette documentation (servie sur /documentation)
+├── backend/
+│   ├── Dockerfile
+│   ├── .env                  Secrets locaux (jamais copiés dans l'image)
+│   ├── .env.example          Modèle de .env sans valeurs
+│   ├── scripts/              Scripts ponctuels (import TV Time)
+│   └── src/
+│       ├── app.js            Point d'entrée Express
+│       ├── routes/           Une route par domaine fonctionnel
+│       ├── services/         Logique métier et appels TMDB
+│       ├── middleware/       Authentification (requireAuth)
+│       ├── cron/             Tâche planifiée quotidienne
+│       └── db/               Connexion, migrate.js, migrations SQL
+└── frontend/
+    ├── Dockerfile            Build Vite puis image Nginx
+    ├── nginx.conf           Proxy /api et service de /documentation
+    └── src/
+        ├── pages/            Une page par écran
+        ├── components/       Composants réutilisables
+        ├── context/          AuthContext (session utilisateur)
+        ├── api/client.js     Instance axios (baseURL /api)
+        └── constants/        Statuts et leurs libellés</code></pre>
+  </main>
+
+  <footer class="site">
+    TV Tracker · documentation générée pour le projet local · dernière mise à jour : octobre 2026
+  </footer>
+</body>
+</html>

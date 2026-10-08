@@ -1,0 +1,58 @@
+name: tv-tracker
+
+# Lancement : docker compose up -d --build
+# Application : http://localhost:8080
+# Documentation : http://localhost:8080/documentation
+# MySQL (depuis un client externe) : localhost:3307 (utilisateur tvtracker)
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_local}
+      MYSQL_DATABASE: tv_tracker
+      MYSQL_USER: ${DB_USER:-tvtracker}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-tvtracker_local}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    # Les secrets (TMDB_API_KEY, JWT_SECRET) viennent du .env du backend, jamais copiés dans l'image.
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: tv_tracker
+      DB_USER: ${DB_USER:-tvtracker}
+      DB_PASSWORD: ${DB_PASSWORD:-tvtracker_local}
+      PORT: 5000
+      FRONTEND_ORIGIN: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      # Documentation montée depuis le dossier du projet : modifiable sans reconstruire l'image
+      - ./documentation:/usr/share/nginx/documentation:ro
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

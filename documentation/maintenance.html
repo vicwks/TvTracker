@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maintenance — Documentation TV Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="/documentation/">TV Tracker · Docs</a>
+      <nav>
+        <a href="index.html">Accueil</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="docker.html">Docker</a>
+        <a href="base-de-donnees.html">Base de données</a>
+        <a href="api.html">API</a>
+        <a href="fonctionnement.html">Fonctionnement</a>
+        <a href="maintenance.html" aria-current="page">Maintenance</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Maintenance</h1>
+    <p class="lead">Dépannage courant, points d'attention et dette technique connue.</p>
+
+    <h2>Dépannage</h2>
+    <table>
+      <thead><tr><th>Symptôme</th><th>Cause probable</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>La page répond <code>502 Bad Gateway</code> sur <code>/api/...</code></td>
+          <td>Le backend ne tourne pas ou a planté (souvent une migration qui échoue).</td>
+          <td><code>docker compose logs backend --tail 50</code>. Corriger la cause, puis <code>docker compose up -d --build backend</code>.</td>
+        </tr>
+        <tr>
+          <td>Le backend redémarre en boucle (<em>Restarting</em>)</td>
+          <td>Erreur au démarrage : migration, base injoignable, ou dépendance manquante.</td>
+          <td>Lire les logs. Vérifier que <code>db</code> est <em>healthy</em> avec <code>docker compose ps</code>.</td>
+        </tr>
+        <tr>
+          <td>Erreur <code>bind: address already in use</code> au démarrage</td>
+          <td>Le port <code>8080</code> ou <code>3307</code> est déjà utilisé.</td>
+          <td>Arrêter l'autre programme, ou changer le port gauche dans <code>docker-compose.yml</code>.</td>
+        </tr>
+        <tr>
+          <td>La recherche TMDB ne renvoie rien</td>
+          <td><code>TMDB_API_KEY</code> absente ou invalide dans <code>backend/.env</code>.</td>
+          <td>Vérifier le fichier, puis <code>docker compose up -d --build backend</code> (le <code>.env</code> est lu au lancement du conteneur).</td>
+        </tr>
+        <tr>
+          <td>Connexion refusée après un <code>docker compose down -v</code></td>
+          <td>Le volume de base a été supprimé : la base est vide.</td>
+          <td>Recréer un compte. Les migrations se sont appliquées automatiquement.</td>
+        </tr>
+        <tr>
+          <td>Changement de code non visible</td>
+          <td>L'image n'a pas été reconstruite (le code est copié dans l'image, il n'est pas monté).</td>
+          <td><code>docker compose up -d --build</code>. Seule la documentation est montée en direct.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Commandes de diagnostic</h2>
+    <pre><code>docker compose ps
+docker compose logs -f backend
+docker compose logs web --tail 50
+docker compose exec backend sh -c "wget -qO- http://localhost:5000/api/health"</code></pre>
+
+    <h2>Points d'attention sécurité</h2>
+    <div class="warn">
+      <strong>À traiter avant toute mise en ligne.</strong> L'environnement actuel est local.
+    </div>
+    <ul>
+      <li>
+        <strong>Secret JWT</strong> : <code>JWT_SECRET</code> est obligatoire (32 caractères minimum). Sans lui, le backend
+        refuse de démarrer, il n'y a plus de valeur de repli connue.
+      </li>
+      <li>
+        <strong>Mots de passe par défaut</strong> : <code>root_local</code> et <code>tvtracker_local</code> dans
+        <code>docker-compose.yml</code>. Acceptables en local, à remplacer ailleurs.
+      </li>
+      <li>
+        <strong>Routes de maintenance ouvertes</strong> : <code>clean-runtimes</code>, <code>refresh-runtimes</code> et
+        <code>recompute-status</code> ne sont protégées que par la connexion, pas par un rôle administrateur.
+      </li>
+      <li>
+        <strong>Limitation des tentatives</strong> : 20 requêtes par IP toutes les 15 minutes sur <code>/api/auth/login</code>
+        et <code>/api/auth/register</code>. Le compteur est en mémoire, il repart à zéro au redémarrage du backend.
+      </li>
+      <li>
+        <strong>Cookie <code>Secure</code></strong> : désactivé par défaut (HTTP local). Mettre <code>COOKIE_SECURE=true</code>
+        dans <code>backend/.env</code> dès que l'application est servie en HTTPS.
+      </li>
+      <li>
+        <strong>Vulnérabilités npm signalées</strong> à l'installation : 2 modérées côté backend, 11 côté frontend
+        (dont 6 élevées). Non corrigées pour l'instant ; <code>npm audit</code> détaille les paquets concernés.
+      </li>
+    </ul>
+
+    <h2>Dette technique et limites connues</h2>
+    <ul>
+      <li><strong>Aucun test automatique</strong> dans le projet.</li>
+      <li><strong>Import TV Time</strong> : le fichier JSON source n'est pas versionné ; le script ne fonctionne qu'après régénération.</li>
+      <li><strong>Migration</strong> : <code>migrate.js</code> mélange SQL et logique JavaScript. Chaque nouvelle évolution doit rester idempotente.</li>
+      <li><strong>Relations polymorphes</strong> (<code>ratings</code>, <code>notes</code>, <code>watchlist</code>) : pas de clé étrangère, donc pas d'intégrité référentielle en base.</li>
+      <li><strong>Bundle frontend</strong> : plus de 500 Ko après minification (avertissement Vite). Un découpage par route réduirait la taille.</li>
+      <li><strong>Recharts 2.x</strong> : branche déclarée obsolète par npm ; une migration vers la 3.x est à prévoir.</li>
+      <li><strong>README</strong> : garde les deux procédures (Docker en tête, WAMP ensuite). La partie WAMP reste utile si tu lances le projet hors conteneurs.</li>
+      <li><strong>Payload TV Time absent</strong> : <code>backend/scripts/tvtime-payload.json</code> n'est pas dans le projet ; il faut le régénérer depuis l'export RGPD.</li>
+    </ul>
+
+    <h2>Workflow Git</h2>
+    <p>Le dépôt est <code>github.com/vicwks/TvTracker</code>. Trois branches permanentes :</p>
+    <table>
+      <thead><tr><th>Branche</th><th>Rôle</th><th>Où elle tourne</th></tr></thead>
+      <tbody>
+        <tr><td><code>dev</code></td><td>Développement. Point de départ de tout développement.</td><td>PC local</td></tr>
+        <tr><td><code>pre-prod</code></td><td>Recette avant mise en production.</td><td>Serveur externe (O2Switch), autre dossier</td></tr>
+        <tr><td><code>main</code></td><td>Production. Branche principale du dépôt.</td><td>Serveur externe (O2Switch), dossier de production</td></tr>
+      </tbody>
+    </table>
+    <ol>
+      <li>Partir de <code>dev</code> à jour : <code>git switch dev</code>, puis <code>git pull</code>.</li>
+      <li>Créer la branche de travail : <code>git switch -c feat/&lt;nom-du-developpement&gt;</code>.</li>
+      <li>Committer, puis pousser : <code>git push -u origin feat/&lt;nom-du-developpement&gt;</code>.</li>
+      <li>Fusionner dans <code>dev</code> une fois validé. <code>pre-prod</code> et <code>main</code> ne reçoivent que des fusions depuis <code>dev</code>.</li>
+    </ol>
+
+    <h2>Journal des modifications</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Modification</th></tr></thead>
+      <tbody>
+        <tr><td>2026-10-08</td><td>Mise en place Docker : <code>docker-compose.yml</code>, <code>backend/Dockerfile</code>, <code>frontend/Dockerfile</code>, <code>frontend/nginx.conf</code> et fichiers <code>.dockerignore</code>.</td></tr>
+        <tr><td>2026-10-08</td><td>Ajout de <code>backend/.env.example</code> (le README le citait sans qu'il existe).</td></tr>
+        <tr><td>2026-10-08</td><td>Correction de <code>migrate.js</code> : création d'index simples avant la suppression des index uniques couverts par une clé étrangère (sans cela, une base neuve ne se migrait pas).</td></tr>
+        <tr><td>2026-10-08</td><td>Création de cette documentation dans <code>documentation/</code>, servie sur <code>/documentation</code>.</td></tr>
+        <tr><td>2026-10-08</td><td>Import des données de l'ancienne base WAMP dans la base Docker (compte de test supprimé au passage).</td></tr>
+        <tr><td>2026-10-08</td><td>Revue du backend : validation des entrées, messages d'erreur sans détails internes, limitation des tentatives de connexion, cache des lectures TMDB, requêtes groupées (liste des séries, détail, saisons, watched-all, statuts), synchronisation TMDB en upsert avec fraîcheur de 24h, import partagé entre la route et le script, tâche planifiée à 6h heure de Paris (une erreur sur une série n'arrête plus les autres), arrêt propre, route de santé vérifiant la base. Index et colonne <code>shows.synced_at</code> ajoutés par la migration.</td></tr>
+        <tr><td>2026-10-08</td><td>Suppression du dossier <code>tv-tracker\tv-tracker\</code> (coquille vide : sans code, avec un ancien README). Ses sections utiles (import TV Time, mise à jour, durées d'épisodes) ont été reprises dans le README principal.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Données</h2>
+    <p>
+      La base Docker contient les données de l'ancienne base WAMP (<code>tv_tracker</code>), importées le 8 octobre 2026 à partir d'un dump
+      <code>mysqldump</code> : 1 compte, 819 séries suivies, 41 996 épisodes vus, 176 films, 3 éléments de watchlist et 1 note.
+      Le compte de test créé dans Docker a été supprimé lors de cet import.
+    </p>
+    <p>
+      Pour refaire un import depuis WAMP plus tard : démarrer WAMP (MySQL), puis exporter avec
+      <code>mysqldump -uroot --single-transaction --routines --triggers --databases tv_tracker --result-file=tv_tracker.sql</code>.
+      Importer ensuite dans le conteneur : <code>docker compose exec -T db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD"' &lt; tv_tracker.sql</code>
+      (après avoir supprimé la base existante, sinon les comptes entreront en conflit).
+    </p>
+  </main>
+
+  <footer class="site">TV Tracker · documentation technique</footer>
+</body>
+</html>

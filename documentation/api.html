@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API — Documentation TV Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="/documentation/">TV Tracker · Docs</a>
+      <nav>
+        <a href="index.html">Accueil</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="docker.html">Docker</a>
+        <a href="base-de-donnees.html">Base de données</a>
+        <a href="api.html" aria-current="page">API</a>
+        <a href="fonctionnement.html">Fonctionnement</a>
+        <a href="maintenance.html">Maintenance</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Référence API</h1>
+    <p class="lead">Toutes les routes sont préfixées par <code>/api</code>. Depuis le navigateur, elles passent par Nginx sur <code>http://localhost:8080</code>.</p>
+
+    <h2>Authentification</h2>
+    <p>
+      La session est un JWT signé avec <code>JWT_SECRET</code>, valable 30 jours, stocké dans un cookie HTTP-only nommé
+      <code>token</code> (<code>SameSite=Lax</code>). Les routes marquées <span class="tag">auth</span> exigent ce cookie ;
+      sans lui, ou avec un jeton invalide, la réponse est <code>401</code>.
+    </p>
+
+    <h2>Santé</h2>
+    <table>
+      <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/api/health</code></td><td>public</td><td>Renvoie <code>{ "ok": true, "db": true }</code> si la base répond, <code>503</code> sinon. Utilisé par le healthcheck Docker.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Format des erreurs</h2>
+    <p>Toutes les erreurs sont renvoyées en JSON, sous la forme <code>{ "error": "message" }</code>, sans détail technique interne.</p>
+    <table>
+      <thead><tr><th>Code</th><th>Cas</th></tr></thead>
+      <tbody>
+        <tr><td><code>400</code></td><td>Donnée invalide (statut inconnu, note hors de 0 à 10, JSON malformé...)</td></tr>
+        <tr><td><code>401</code></td><td>Non connecté, ou identifiants incorrects</td></tr>
+        <tr><td><code>404</code></td><td>Ressource introuvable, ou identifiant TMDB inconnu</td></tr>
+        <tr><td><code>409</code></td><td>Conflit (pseudo déjà pris, demande d'ami déjà envoyée)</td></tr>
+        <tr><td><code>429</code></td><td>Trop de tentatives de connexion ou d'inscription (20 par IP toutes les 15 minutes)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Authentification et compte</h2>
+    <table>
+      <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>POST</td><td><code>/api/auth/register</code></td><td>public</td><td>Crée un compte. Le tout premier compte récupère les données déjà présentes en base.</td></tr>
+        <tr><td>POST</td><td><code>/api/auth/login</code></td><td>public</td><td>Vérifie le mot de passe et pose le cookie <code>token</code>.</td></tr>
+        <tr><td>POST</td><td><code>/api/auth/logout</code></td><td>public</td><td>Supprime le cookie.</td></tr>
+        <tr><td>GET</td><td><code>/api/auth/me</code></td><td><span class="tag">auth</span></td><td>Profil de l'utilisateur connecté.</td></tr>
+        <tr><td>PATCH</td><td><code>/api/auth/me</code></td><td><span class="tag">auth</span></td><td>Modifie le profil (nom affiché, avatar).</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Séries et épisodes</h2>
+    <p>Le routeur <code>/api/shows</code> est protégé dans son ensemble (<code>router.use(requireAuth)</code>).</p>
+    <table>
+      <thead><tr><th>Méthode</th><th>Route</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/api/shows</code></td><td>Séries suivies par l'utilisateur.</td></tr>
+        <tr><td>POST</td><td><code>/api/shows</code></td><td>Ajoute une série au suivi (synchronise TMDB si besoin).</td></tr>
+        <tr><td>GET</td><td><code>/api/shows/resolve/:tmdbId</code></td><td>Retrouve l'id local d'une série à partir de son id TMDB.</td></tr>
+        <tr><td>GET</td><td><code>/api/shows/:id</code></td><td>Fiche série avec saisons et épisodes.</td></tr>
+        <tr><td>PATCH</td><td><code>/api/shows/:id/status</code></td><td>Change le statut de suivi.</td></tr>
+        <tr><td>POST</td><td><code>/api/shows/:id/refresh</code></td><td>Resynchronise une série depuis TMDB.</td></tr>
+        <tr><td>POST</td><td><code>/api/shows/:id/rating</code></td><td>Note une série.</td></tr>
+        <tr><td>DELETE</td><td><code>/api/shows/:id</code></td><td>Retire la série du suivi.</td></tr>
+        <tr><td>POST</td><td><code>/api/shows/refresh-runtimes</code></td><td>Maintenance : recalcule les durées d'épisodes manquantes.</td></tr>
+        <tr><td>POST</td><td><code>/api/shows/clean-runtimes</code></td><td>Maintenance : nettoie les durées aberrantes.</td></tr>
+        <tr><td>POST</td><td><code>/api/shows/recompute-status</code></td><td>Maintenance : recalcule le statut automatique « terminé ».</td></tr>
+        <tr><td>PATCH</td><td><code>/api/episodes/:id/watched</code></td><td>Marque un épisode vu ou non.</td></tr>
+        <tr><td>POST</td><td><code>/api/episodes/:id/rewatch</code></td><td>Incrémente le compteur de revisionnage (↻).</td></tr>
+        <tr><td>PATCH</td><td><code>/api/episodes/season/:seasonId/watched-all</code></td><td>Marque toute une saison vue.</td></tr>
+        <tr><td>PATCH</td><td><code>/api/episodes/season/:seasonId/watched-up-to/:episodeNumber</code></td><td>Marque vus les épisodes jusqu'au numéro donné (rattrapage).</td></tr>
+        <tr><td>POST</td><td><code>/api/episodes/:id/rating</code></td><td>Note un épisode.</td></tr>
+        <tr><td>POST</td><td><code>/api/episodes/:id/note</code></td><td>Ajoute une note texte à un épisode.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Films</h2>
+    <table>
+      <thead><tr><th>Méthode</th><th>Route</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/api/movies</code></td><td>Films suivis par l'utilisateur.</td></tr>
+        <tr><td>POST</td><td><code>/api/movies</code></td><td>Ajoute un film au suivi.</td></tr>
+        <tr><td>GET</td><td><code>/api/movies/resolve/:tmdbId</code></td><td>Retrouve l'id local d'un film à partir de son id TMDB.</td></tr>
+        <tr><td>GET</td><td><code>/api/movies/:id</code></td><td>Fiche film.</td></tr>
+        <tr><td>PATCH</td><td><code>/api/movies/:id/watched</code></td><td>Marque le film vu ou non.</td></tr>
+        <tr><td>POST</td><td><code>/api/movies/:id/rating</code></td><td>Note un film.</td></tr>
+        <tr><td>POST</td><td><code>/api/movies/:id/note</code></td><td>Ajoute une note texte à un film.</td></tr>
+        <tr><td>DELETE</td><td><code>/api/movies/:id</code></td><td>Retire le film du suivi.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Recherche, découverte, liste à voir</h2>
+    <table>
+      <thead><tr><th>Méthode</th><th>Route</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/api/search/shows</code></td><td>Recherche de séries sur TMDB.</td></tr>
+        <tr><td>GET</td><td><code>/api/search/movies</code></td><td>Recherche de films sur TMDB.</td></tr>
+        <tr><td>GET</td><td><code>/api/discover/trending/shows</code></td><td>Séries en tendance (TMDB).</td></tr>
+        <tr><td>GET</td><td><code>/api/discover/trending/movies</code></td><td>Films en tendance (TMDB).</td></tr>
+        <tr><td>GET</td><td><code>/api/discover/genres/shows</code> · <code>/genres/movies</code></td><td>Listes de genres TMDB.</td></tr>
+        <tr><td>GET</td><td><code>/api/discover/by-genre/shows/:genreId</code> · <code>/by-genre/movies/:genreId</code></td><td>Découverte par genre, triée par popularité.</td></tr>
+        <tr><td>GET</td><td><code>/api/watchlist</code></td><td>Liste à voir de l'utilisateur.</td></tr>
+        <tr><td>POST</td><td><code>/api/watchlist</code></td><td>Ajoute un élément à la liste à voir.</td></tr>
+        <tr><td>DELETE</td><td><code>/api/watchlist/:id</code></td><td>Retire un élément de la liste à voir.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Statistiques, calendrier, import</h2>
+    <table>
+      <thead><tr><th>Méthode</th><th>Route</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/api/stats</code></td><td>Temps de visionnage, répartition par genre, évolution mensuelle.</td></tr>
+        <tr><td>GET</td><td><code>/api/calendar</code></td><td>Prochains épisodes des séries suivies.</td></tr>
+        <tr><td>POST</td><td><code>/api/import</code></td><td>Import « au mieux » d'une liste { shows: [{ title, watched_episodes }] }. Renvoie un rapport (voir Fonctionnement).</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Amis</h2>
+    <table>
+      <thead><tr><th>Méthode</th><th>Route</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/api/friends/search</code></td><td>Recherche d'un utilisateur par pseudo.</td></tr>
+        <tr><td>GET</td><td><code>/api/friends</code></td><td>Liste d'amis acceptés.</td></tr>
+        <tr><td>GET</td><td><code>/api/friends/requests</code></td><td>Demandes reçues en attente.</td></tr>
+        <tr><td>GET</td><td><code>/api/friends/sent</code></td><td>Demandes envoyées en attente.</td></tr>
+        <tr><td>POST</td><td><code>/api/friends/request</code></td><td>Envoie une demande d'ami.</td></tr>
+        <tr><td>POST</td><td><code>/api/friends/:friendshipId/accept</code></td><td>Accepte une demande reçue.</td></tr>
+        <tr><td>DELETE</td><td><code>/api/friends/:friendshipId</code></td><td>Supprime une amitié ou annule une demande.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      Les routes de maintenance (<code>refresh-runtimes</code>, <code>clean-runtimes</code>, <code>recompute-status</code>)
+      sont accessibles à tout utilisateur connecté et modifient des données partagées. À restreindre avant toute mise en ligne.
+    </div>
+  </main>
+
+  <footer class="site">TV Tracker · documentation technique</footer>
+</body>
+</html>

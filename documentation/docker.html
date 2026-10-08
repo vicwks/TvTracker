@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Docker — Documentation TV Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="/documentation/">TV Tracker · Docs</a>
+      <nav>
+        <a href="index.html">Accueil</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="docker.html" aria-current="page">Docker</a>
+        <a href="base-de-donnees.html">Base de données</a>
+        <a href="api.html">API</a>
+        <a href="fonctionnement.html">Fonctionnement</a>
+        <a href="maintenance.html">Maintenance</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Lancer avec Docker</h1>
+    <p class="lead">Tout l'environnement (base de données, backend, frontend) tourne dans Docker Desktop. WAMP n'est plus nécessaire.</p>
+
+    <h2>Prérequis</h2>
+    <ul>
+      <li>Docker Desktop installé et démarré (Docker Compose v2 inclus).</li>
+      <li>Un fichier <code>backend/.env</code> contenant au minimum <code>TMDB_API_KEY</code> et <code>JWT_SECRET</code>. Modèle : <code>backend/.env.example</code>.</li>
+      <li>Les ports <code>8080</code> et <code>3307</code> libres sur la machine.</li>
+    </ul>
+
+    <h2>Premier lancement</h2>
+    <pre><code>cd C:\wamp64\www\tv-tracker
+docker compose up -d --build</code></pre>
+    <p>Puis ouvrir :</p>
+    <ul>
+      <li>Application : <a href="http://localhost:8080">http://localhost:8080</a></li>
+      <li>Documentation : <a href="http://localhost:8080/documentation">http://localhost:8080/documentation</a></li>
+    </ul>
+
+    <h2>Vérifier que tout tourne</h2>
+    <pre><code>docker compose ps
+docker compose logs backend --tail 20</code></pre>
+    <p>Résultat attendu : <code>db</code> est <em>healthy</em>, <code>backend</code> est <em>healthy</em>, et les logs du backend affichent
+      <code>Migration terminée</code>, puis <code>Backend démarré sur http://localhost:5000</code>.</p>
+
+    <h2>Commandes courantes</h2>
+    <table>
+      <thead><tr><th>Action</th><th>Commande</th></tr></thead>
+      <tbody>
+        <tr><td>Arrêter les conteneurs (données conservées)</td><td><code>docker compose down</code></td></tr>
+        <tr><td>Redémarrer</td><td><code>docker compose up -d</code></td></tr>
+        <tr><td>Reconstruire après une modification de code</td><td><code>docker compose up -d --build</code></td></tr>
+        <tr><td>Relancer seulement les migrations</td><td><code>docker compose restart backend</code></td></tr>
+        <tr><td>Suivre les logs en direct</td><td><code>docker compose logs -f backend</code></td></tr>
+        <tr><td>Ouvrir un shell MySQL</td><td><code>docker compose exec db mysql -uroot -proot_local tv_tracker</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <strong>Réinitialiser la base (efface toutes les données).</strong>
+      <code>docker compose down -v</code> supprime aussi le volume <code>tv-tracker_db_data</code>. Au prochain
+      <code>up</code>, la base est recréée vide et les migrations s'appliquent. Ne pas lancer cette commande sans avoir
+      sauvegardé les données.
+    </div>
+
+    <h2>Ce que contient la configuration</h2>
+    <table>
+      <thead><tr><th>Élément</th><th>Détail</th></tr></thead>
+      <tbody>
+        <tr><td>Réseau</td><td>Un réseau interne <code>tv-tracker_default</code>. Les services se joignent par leur nom : <code>db</code>, <code>backend</code>.</td></tr>
+        <tr><td>Volume</td><td><code>db_data</code> : données MySQL persistantes.</td></tr>
+        <tr><td>Documentation</td><td>Le dossier <code>./documentation</code> est monté en lecture seule dans Nginx. Modifier une page n'exige pas de reconstruire l'image.</td></tr>
+        <tr><td>Secrets</td><td>Lus depuis <code>backend/.env</code> au lancement, jamais copiés dans l'image (voir <code>backend/.dockerignore</code>).</td></tr>
+        <tr><td>Healthcheck MySQL</td><td><code>mysqladmin ping</code> toutes les 5 secondes. Le backend attend qu'il soit <em>healthy</em> avant de démarrer.</td></tr>
+        <tr><td>Redémarrage</td><td><code>restart: unless-stopped</code> : les conteneurs repartent avec Docker Desktop.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Variables surchargées dans Docker</h2>
+    <p>Le fichier <code>backend/.env</code> peut contenir des valeurs pensées pour WAMP (<code>DB_HOST=localhost</code>). Le <code>docker-compose.yml</code> les remplace pour le backend :</p>
+    <table>
+      <thead><tr><th>Variable</th><th>Valeur dans Docker</th></tr></thead>
+      <tbody>
+        <tr><td><code>DB_HOST</code></td><td><code>db</code></td></tr>
+        <tr><td><code>DB_PORT</code></td><td><code>3306</code></td></tr>
+        <tr><td><code>DB_NAME</code></td><td><code>tv_tracker</code></td></tr>
+        <tr><td><code>DB_USER</code> / <code>DB_PASSWORD</code></td><td><code>tvtracker</code> / <code>tvtracker_local</code> (par défaut, modifiables via un fichier <code>.env</code> à la racine)</td></tr>
+        <tr><td><code>FRONTEND_ORIGIN</code></td><td><code>http://localhost:8080</code></td></tr>
+      </tbody>
+    </table>
+    <p>Le compte <code>root</code> de MySQL a pour mot de passe <code>root_local</code> (variable <code>MYSQL_ROOT_PASSWORD</code>). Il n'est utilisé que pour l'administration de la base.</p>
+
+    <h2>Connexion à la base depuis un outil externe</h2>
+    <p>Hôte <code>localhost</code>, port <code>3307</code>, base <code>tv_tracker</code>, utilisateur <code>tvtracker</code>, mot de passe <code>tvtracker_local</code>.</p>
+
+    <div class="note">
+      Pour changer les mots de passe par défaut, crée un fichier <code>.env</code> à la racine du projet (à côté de
+      <code>docker-compose.yml</code>) avec <code>MYSQL_ROOT_PASSWORD</code>, <code>DB_USER</code> et <code>DB_PASSWORD</code>,
+      puis relance avec <code>docker compose down -v</code> et <code>docker compose up -d --build</code> (la base doit être recréée
+      car le mot de passe est fixé à sa création).
+    </div>
+  </main>
+
+  <footer class="site">TV Tracker · documentation technique</footer>
+</body>
+</html>

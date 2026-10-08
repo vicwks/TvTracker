@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Architecture — Documentation TV Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="/documentation/">TV Tracker · Docs</a>
+      <nav>
+        <a href="index.html">Accueil</a>
+        <a href="architecture.html" aria-current="page">Architecture</a>
+        <a href="docker.html">Docker</a>
+        <a href="base-de-donnees.html">Base de données</a>
+        <a href="api.html">API</a>
+        <a href="fonctionnement.html">Fonctionnement</a>
+        <a href="maintenance.html">Maintenance</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Architecture</h1>
+    <p class="lead">Trois conteneurs Docker, une seule entrée pour le navigateur, et un backend qui parle à MySQL et à TMDB.</p>
+
+    <h2>Vue d'ensemble</h2>
+    <div class="flow">
+      <div class="box">Navigateur<br><small>localhost:8080</small></div>
+      <span class="arrow">→</span>
+      <div class="box">web (Nginx)<br><small>port 80 interne</small></div>
+      <span class="arrow">/api →</span>
+      <div class="box">backend (Express)<br><small>port 5000 interne</small></div>
+      <span class="arrow">→</span>
+      <div class="box">db (MySQL 8.4)<br><small>port 3306 interne</small></div>
+    </div>
+    <p>
+      Le backend appelle aussi l'API TMDB en sortie (<code>api.themoviedb.org</code> et images <code>image.tmdb.org</code>).
+    </p>
+
+    <h2>Les trois services</h2>
+    <table>
+      <thead>
+        <tr><th>Service</th><th>Image</th><th>Rôle</th><th>Port exposé</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>web</code></td>
+          <td>nginx:1.27-alpine (build multi-étapes)</td>
+          <td>Sert le build React, redirige <code>/api/</code> vers le backend, sert <code>/documentation/</code> depuis le dossier du projet.</td>
+          <td><code>8080</code> sur la machine hôte</td>
+        </tr>
+        <tr>
+          <td><code>backend</code></td>
+          <td>node:22-alpine</td>
+          <td>API REST Express. Au démarrage, lance les migrations puis le serveur, et planifie la tâche quotidienne.</td>
+          <td>Aucun (accès uniquement via <code>web</code>)</td>
+        </tr>
+        <tr>
+          <td><code>db</code></td>
+          <td>mysql:8.4</td>
+          <td>Stocke tout l'état de l'application dans le volume <code>db_data</code>.</td>
+          <td><code>3307</code> sur l'hôte (évite le conflit avec MySQL de WAMP sur 3306)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Pourquoi un proxy Nginx ?</h2>
+    <p>
+      Le frontend appelle son API avec un chemin relatif (<code>/api/...</code>, voir
+      <code>frontend/src/api/client.js</code>). Nginx sert le front et l'API sur la même origine
+      (<code>localhost:8080</code>), ce qui permet aux cookies de session de fonctionner sans configuration CORS
+      complexe. Le proxy est défini dans <code>frontend/nginx.conf</code>.
+    </p>
+    <div class="note">
+      En développement sans Docker, Vite joue ce même rôle : <code>frontend/vite.config.js</code> redirige
+      <code>/api</code> vers <code>http://localhost:5000</code>.
+    </div>
+
+    <h2>Démarrage du backend</h2>
+    <p>La commande de démarrage du conteneur <code>backend</code> est :</p>
+    <pre><code>node src/db/migrate.js && node src/app.js</code></pre>
+    <ol>
+      <li><strong>Migration</strong> : <code>migrate.js</code> exécute les fichiers SQL de <code>src/db/migrations/</code> et des ajustements idempotents. Elle peut être relancée sans risque.</li>
+      <li><strong>Serveur</strong> : <code>app.js</code> monte les routes sous <code>/api</code>, puis démarre le cron.</li>
+    </ol>
+    <p>Si la migration échoue, le serveur ne démarre pas : c'est voulu, pour ne jamais tourner sur un schéma incomplet.</p>
+
+    <h2>Organisation du backend</h2>
+    <table>
+      <thead>
+        <tr><th>Dossier</th><th>Contenu</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>src/app.js</code></td><td>Express, CORS (<code>FRONTEND_ORIGIN</code>), cookies, montage des routes, démarrage du cron.</td></tr>
+        <tr><td><code>src/routes/</code></td><td>Un fichier par domaine : auth, shows, movies, episodes, watchlist, stats, calendar, discover, search, friends, import.</td></tr>
+        <tr><td><code>src/services/</code></td><td><code>tmdb.js</code> (client TMDB avec réessais), <code>showSync.js</code> (import d'une série en base), <code>showStatus.js</code> (statut automatique), <code>auth.js</code> (JWT et bcrypt).</td></tr>
+        <tr><td><code>src/middleware/</code></td><td><code>requireAuth.js</code> : vérifie le cookie <code>token</code>.</td></tr>
+        <tr><td><code>src/cron/</code></td><td><code>checkNewEpisodes.js</code> : resynchronisation quotidienne à 6h.</td></tr>
+        <tr><td><code>src/db/</code></td><td><code>connection.js</code> (pool MySQL), <code>migrate.js</code>, <code>migrations/*.sql</code>.</td></tr>
+        <tr><td><code>scripts/</code></td><td><code>import-tvtime.js</code> : import ponctuel depuis un export TV Time.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Frontend</h2>
+    <ul>
+      <li><strong>Routage</strong> : React Router dans <code>src/App.jsx</code>. Les pages sauf <code>/login</code> et <code>/register</code> passent par <code>ProtectedRoute</code>.</li>
+      <li><strong>Session</strong> : <code>context/AuthContext.jsx</code> interroge <code>/api/auth/me</code> au chargement.</li>
+      <li><strong>Erreur 401</strong> : l'intercepteur de <code>api/client.js</code> renvoie vers <code>/login</code>.</li>
+      <li><strong>Statuts</strong> : libellés et couleurs dans <code>constants/status.js</code>.</li>
+    </ul>
+  </main>
+
+  <footer class="site">TV Tracker · documentation technique</footer>
+</body>
+</html>
