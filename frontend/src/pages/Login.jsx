@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import AuthLayout from '../components/AuthLayout.jsx';
+import AuthField from '../components/AuthField.jsx';
+import { errorMessage } from '../utils/errors.js';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,51 +22,71 @@ export default function Login() {
       await login(username, password);
       navigate('/');
     } catch (err) {
-      const detail = err.response?.data?.details ? ` (${err.response.data.details})` : '';
-      setError((err.response?.data?.error || 'Erreur de connexion') + detail);
+      setError(errorMessage(err, 'Connexion impossible.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-sm mx-auto px-6 py-16">
-      <h1 className="text-2xl font-bold text-zinc-100 tracking-tight mb-1 text-center">📺 TV Tracker</h1>
-      <p className="text-sm text-zinc-500 text-center mb-8">Connecte-toi pour retrouver tes séries</p>
+    <AuthLayout
+      headline="Reprends là où tu t’es arrêté."
+      intro="Tes séries, tes films et les épisodes que tu n’as pas encore vus, au même endroit."
+      title="Connexion"
+      footer={
+        <>
+          Pas encore de compte ?{' '}
+          <Link to="/register" className="text-signal underline-offset-4 hover:underline">
+            Crée-le en une minute
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={submit} className="space-y-7">
+        <AuthField
+          id="username"
+          label="Pseudo"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
+        />
 
-      <form onSubmit={submit} className="card p-6 space-y-4">
-        {error && <p className="text-rose-400 text-sm">{error}</p>}
-        <div>
-          <label className="text-xs text-zinc-500 block mb-1">Pseudo</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-accent"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-500 block mb-1">Mot de passe</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-accent"
-          />
-        </div>
-        <button type="submit" disabled={loading} className="btn-primary w-full py-2 text-sm disabled:opacity-50">
-          {loading ? 'Connexion...' : 'Se connecter'}
+        <AuthField
+          id="password"
+          label="Mot de passe"
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+          required
+          suffix={
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="shrink-0 rounded text-sm text-ink-muted hover:text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+            >
+              {showPassword ? 'Masquer' : 'Afficher'}
+            </button>
+          }
+        />
+
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-md bg-signal py-3 text-base font-medium text-signal-ink transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal disabled:opacity-50"
+        >
+          {loading ? 'Connexion en cours…' : 'Se connecter'}
         </button>
       </form>
-
-      <p className="text-center text-sm text-zinc-500 mt-4">
-        Pas encore de compte ?{' '}
-        <Link to="/register" className="text-accent hover:underline">
-          Créer un compte
-        </Link>
-      </p>
-    </div>
+    </AuthLayout>
   );
 }

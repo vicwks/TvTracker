@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import AuthLayout from '../components/AuthLayout.jsx';
+import AuthField from '../components/AuthField.jsx';
+import { errorMessage } from '../utils/errors.js';
+
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+const PASSWORD_MIN = 8;
 
 export default function Register() {
   const { register } = useAuth();
@@ -8,8 +14,16 @@ export default function Register() {
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Contrôles en direct : le message n'apparaît que si le champ a été rempli.
+  const usernameError =
+    username && !USERNAME_REGEX.test(username)
+      ? '3 à 20 caractères : lettres, chiffres ou underscore.'
+      : '';
+  const passwordReady = password.length >= PASSWORD_MIN;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -19,64 +33,86 @@ export default function Register() {
       await register(username, password, displayName);
       navigate('/');
     } catch (err) {
-      const detail = err.response?.data?.details ? ` (${err.response.data.details})` : '';
-      setError((err.response?.data?.error || "Erreur lors de l'inscription") + detail);
+      setError(errorMessage(err, "Inscription impossible."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-sm mx-auto px-6 py-16">
-      <h1 className="text-2xl font-bold text-zinc-100 tracking-tight mb-1 text-center">📺 TV Tracker</h1>
-      <p className="text-sm text-zinc-500 text-center mb-8">Crée ton compte</p>
+    <AuthLayout
+      headline="Commence ton carnet."
+      intro="Crée ton compte, puis note ce que tu as déjà vu. Tu peux aussi repartir de zéro."
+      title="Créer un compte"
+      footer={
+        <>
+          Déjà inscrit ?{' '}
+          <Link to="/login" className="text-signal underline-offset-4 hover:underline">
+            Se connecter
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={submit} className="space-y-7">
+        <AuthField
+          id="username"
+          label="Pseudo"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
+          error={usernameError}
+          hint={usernameError ? undefined : 'Lettres, chiffres et underscore. Il sert à te retrouver.'}
+        />
 
-      <form onSubmit={submit} className="card p-6 space-y-4">
-        {error && <p className="text-rose-400 text-sm">{error}</p>}
-        <div>
-          <label className="text-xs text-zinc-500 block mb-1">Pseudo (unique, 3-20 caractères)</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            pattern="[a-zA-Z0-9_]{3,20}"
-            title="Lettres, chiffres et underscore uniquement, 3 à 20 caractères"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-accent"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-500 block mb-1">Nom affiché (optionnel)</label>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder={username || 'Comme le pseudo si laissé vide'}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-accent"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-500 block mb-1">Mot de passe (8 caractères min.)</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-accent"
-          />
-        </div>
-        <button type="submit" disabled={loading} className="btn-primary w-full py-2 text-sm disabled:opacity-50">
-          {loading ? 'Création...' : 'Créer mon compte'}
+        <AuthField
+          id="display-name"
+          label="Nom affiché"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          placeholder={username || 'Ton pseudo'}
+          autoComplete="nickname"
+          maxLength={64}
+          hint="Facultatif. Le pseudo est utilisé si tu ne remplis rien."
+        />
+
+        <AuthField
+          id="password"
+          label="Mot de passe"
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+          required
+          minLength={PASSWORD_MIN}
+          hint={passwordReady ? `${PASSWORD_MIN} caractères minimum, c'est bon.` : `${PASSWORD_MIN} caractères minimum.`}
+          suffix={
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="shrink-0 rounded text-sm text-ink-muted hover:text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+            >
+              {showPassword ? 'Masquer' : 'Afficher'}
+            </button>
+          }
+        />
+
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading || !!usernameError}
+          className="w-full rounded-md bg-signal py-3 text-base font-medium text-signal-ink transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal disabled:opacity-50"
+        >
+          {loading ? 'Création en cours…' : 'Créer mon compte'}
         </button>
       </form>
-
-      <p className="text-center text-sm text-zinc-500 mt-4">
-        Déjà un compte ?{' '}
-        <Link to="/login" className="text-accent hover:underline">
-          Se connecter
-        </Link>
-      </p>
-    </div>
+    </AuthLayout>
   );
 }

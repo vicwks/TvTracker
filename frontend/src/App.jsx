@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Navbar from './components/Navbar.jsx';
@@ -16,11 +16,17 @@ import CalendarPage from './pages/CalendarPage.jsx';
 import Stats from './pages/Stats.jsx';
 import Friends from './pages/Friends.jsx';
 
+// Pages d'accès sans barre de navigation : elles ont leur propre mise en page.
+const AUTH_PATHS = ['/login', '/register'];
+
 export default function App() {
+  const { pathname } = useLocation();
+  const isAuthPage = AUTH_PATHS.includes(pathname);
+
   return (
     <AuthProvider>
       <div className="min-h-screen">
-        <Navbar />
+        {!isAuthPage && <Navbar />}
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
