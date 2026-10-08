@@ -341,7 +341,7 @@ function WatchCard({ show, delay, onStatusChange }) {
           <div className="h-full rounded-full bg-signal transition-all duration-700" style={{ width: `${percent}%` }} />
         </div>
       </Link>
-      <div className="absolute right-2 top-2">
+      <div className="absolute right-3 top-3">
         <StatusMenu status={show.status} onChange={onStatusChange} />
       </div>
     </article>

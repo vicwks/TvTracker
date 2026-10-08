@@ -27,7 +27,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-ink">
         {!isAuthPage && <Navbar />}
         <Routes>
           <Route path="/login" element={<Login />} />

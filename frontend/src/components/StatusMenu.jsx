@@ -33,7 +33,7 @@ export default function StatusMenu({ status, onChange, size = 'sm' }) {
 
       {open && (
         <div
-          className="absolute z-20 mt-1 right-0 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden min-w-[130px]"
+          className="absolute z-20 mt-1 right-0 bg-ink-soft border border-ink-line rounded-md shadow-2xl shadow-black/50 overflow-hidden min-w-[140px] font-ui"
           onClick={(e) => e.stopPropagation()}
         >
           {STATUS_ORDER.map((key) => (
@@ -45,8 +45,8 @@ export default function StatusMenu({ status, onChange, size = 'sm' }) {
                 onChange(key);
                 setOpen(false);
               }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-zinc-800 transition ${
-                key === status ? 'text-zinc-100 font-medium' : 'text-zinc-400'
+              className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-ink transition ${
+                key === status ? 'text-signal font-medium' : 'text-paper/70 hover:text-paper'
               }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[key].dot}`} />

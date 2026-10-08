@@ -4,9 +4,7 @@
 
 body {
   min-height: 100vh;
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(45, 212, 191, 0.08), transparent),
-    linear-gradient(180deg, #0a0a0c 0%, #101012 100%);
-  background-attachment: fixed;
+  background-color: #0f0e0c; /* encre chaude : même fond que les pages */
 }
 
 /* Les apparitions à l'arrivée sont retirées si l'utilisateur réduit les mouvements. */
