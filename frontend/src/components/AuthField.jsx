@@ -26,7 +26,7 @@ export default function AuthField({ id, label, hint, error, suffix, ...inputProp
         </p>
       ) : (
         hint && (
-          <p id={hintId} className="mt-1.5 text-sm text-ink-muted">
+          <p id={hintId} className="mt-1.5 hidden text-sm text-ink-muted sm:block">
             {hint}
           </p>
         )

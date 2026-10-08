@@ -101,7 +101,7 @@ export default function Register() {
         <AuthField
           id="password"
           label="Mot de passe"
-          placeholder="Choisis un mot de passe"
+          placeholder={`${PASSWORD_MIN} caractères minimum`}
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -109,7 +109,6 @@ export default function Register() {
           required
           minLength={PASSWORD_MIN}
           error={passwordTooShort ? `${PASSWORD_MIN} caractères minimum.` : ''}
-          hint={passwordTooShort ? undefined : `${PASSWORD_MIN} caractères minimum.`}
           suffix={eyeToggle}
         />
 

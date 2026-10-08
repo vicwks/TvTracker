@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { cached } from '../services/cache.js';
-import { getTrendingShows, getTrendingMovies, IMAGE_BASE_URL } from '../services/tmdb.js';
+import { getTrendingShows, getTrendingMovies, IMAGE_BASE_URL_LARGE } from '../services/tmdb.js';
 
 const router = Router();
 
@@ -13,10 +13,10 @@ const POSTER_COUNT = 10;
 function mixPosters(shows, movies) {
   const showItems = shows
     .filter((s) => s.poster_path)
-    .map((s) => ({ tmdb_id: s.id, type: 'show', title: s.name, poster_url: `${IMAGE_BASE_URL}${s.poster_path}` }));
+    .map((s) => ({ tmdb_id: s.id, type: 'show', title: s.name, poster_url: `${IMAGE_BASE_URL_LARGE}${s.poster_path}` }));
   const movieItems = movies
     .filter((m) => m.poster_path && !m.adult)
-    .map((m) => ({ tmdb_id: m.id, type: 'movie', title: m.title, poster_url: `${IMAGE_BASE_URL}${m.poster_path}` }));
+    .map((m) => ({ tmdb_id: m.id, type: 'movie', title: m.title, poster_url: `${IMAGE_BASE_URL_LARGE}${m.poster_path}` }));
 
   const mixed = [];
   const longest = Math.max(showItems.length, movieItems.length);

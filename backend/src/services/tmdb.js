@@ -5,6 +5,8 @@ const BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = process.env.TMDB_API_KEY;
 
 export const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+// Taille plus grande, pour les affiches affichées en plein écran (page de connexion).
+export const IMAGE_BASE_URL_LARGE = 'https://image.tmdb.org/t/p/w780';
 
 const tmdb = axios.create({
   baseURL: BASE_URL,
