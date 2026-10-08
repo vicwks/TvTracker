@@ -56,16 +56,23 @@ export default function PosterCard({
 
   return (
     <article className="group relative flex h-full animate-rise flex-col" style={{ animationDelay: `${delay}ms` }}>
-      {to ? (
+      {to && (
         <Link to={to} className="block">
           {poster}
           {info}
         </Link>
-      ) : (
+      )}
+      {!to && onOpen && (
         <button type="button" onClick={onOpen} className="block w-full text-left">
           {poster}
           {info}
         </button>
+      )}
+      {!to && !onOpen && (
+        <div>
+          {poster}
+          {info}
+        </div>
       )}
       {footer && <div className="mt-2">{footer}</div>}
       {cornerBadge && <div className="absolute right-3 top-3">{cornerBadge}</div>}

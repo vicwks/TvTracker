@@ -134,6 +134,13 @@ export const fr = {
   rating: {
     label: 'Donner {star} sur {max}',
   },
+  watchlist: {
+    kicker: 'À voir plus tard',
+    title: 'Ma watchlist',
+    empty: 'Ta watchlist est vide.',
+    start: 'Commencer le suivi',
+    remove: 'Retirer',
+  },
   myMovies: {
     kicker: 'Ma bibliothèque',
     title: 'Mes films',
@@ -188,6 +195,8 @@ export const fr = {
     follow: '+ Suivre',
     followed: 'Suivi',
     friendsWatching: '{names} regarde(nt) aussi',
+    typeShow: 'Série',
+    typeMovie: 'Film',
   },
   discover: {
     kicker: 'Découvrir',
