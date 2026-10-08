@@ -2,8 +2,10 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Navbar from './components/Navbar.jsx';
+import Footer from './components/Footer.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import { Cgu, MentionsLegales } from './pages/Legal.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Discover from './pages/Discover.jsx';
 import Search from './pages/Search.jsx';
@@ -30,6 +32,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/cgu" element={<Cgu />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
 
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
@@ -43,6 +47,7 @@ export default function App() {
           <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
           <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
         </Routes>
+        {!isAuthPage && <Footer />}
       </div>
     </AuthProvider>
   );

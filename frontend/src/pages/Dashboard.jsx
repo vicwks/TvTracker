@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import client from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import StatusMenu from '../components/StatusMenu.jsx';
+import Pagination from '../components/Pagination.jsx';
+
+// Nombre de séries affichées par page dans « En cours de visionnage » (deux lignes sur grand écran).
+const WATCHING_PER_PAGE = 10;
 
 // Tableau de bord : même identité que les pages de connexion (encre chaude, Fraunces, ambre).
 // Les composants partagés (ShowCard, ProgressBar...) ne sont pas modifiés : le style est local à cette page.
@@ -15,6 +19,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [watchingPage, setWatchingPage] = useState(1);
 
   const load = () => {
     setLoading(true);
@@ -51,6 +56,13 @@ export default function Dashboard() {
   };
 
   const watching = shows.filter((s) => s.status === 'watching');
+  // Si une série sort de la liste (changement de statut), on reste sur une page qui existe.
+  const watchingPageCount = Math.max(1, Math.ceil(watching.length / WATCHING_PER_PAGE));
+  const currentWatchingPage = Math.min(watchingPage, watchingPageCount);
+  const visibleWatching = watching.slice(
+    (currentWatchingPage - 1) * WATCHING_PER_PAGE,
+    currentWatchingPage * WATCHING_PER_PAGE
+  );
   const hours = stats ? Math.round(stats.totalMinutes / 60) : 0;
   // Affiche de la première série en cours, en toile de fond discrète de l'en-tête.
   const backdrop = watching.find((s) => s.poster_url)?.poster_url;
@@ -198,16 +210,23 @@ export default function Dashboard() {
               .
             </Empty>
           ) : (
-            <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {watching.map((show, i) => (
-                <WatchCard
-                  key={show.id}
-                  show={show}
-                  delay={i * 70}
-                  onStatusChange={(status) => changeStatus(show.id, status)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {visibleWatching.map((show, i) => (
+                  <WatchCard
+                    key={show.id}
+                    show={show}
+                    delay={i * 70}
+                    onStatusChange={(status) => changeStatus(show.id, status)}
+                  />
+                ))}
+              </div>
+              <Pagination
+                page={currentWatchingPage}
+                pageCount={watchingPageCount}
+                onChange={setWatchingPage}
+              />
+            </>
           )}
         </section>
 
@@ -318,8 +337,8 @@ function WatchCard({ show, delay, onStatusChange }) {
         <p className="mt-1 text-xs tabular-nums text-ink-muted">
           {watched} / {total} épisodes
         </p>
-        <div className="mt-3 h-px w-full bg-ink-line" aria-hidden="true">
-          <div className="h-px bg-signal transition-all duration-700" style={{ width: `${percent}%` }} />
+        <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-ink-line" aria-hidden="true">
+          <div className="h-full rounded-full bg-signal transition-all duration-700" style={{ width: `${percent}%` }} />
         </div>
       </Link>
       <div className="absolute right-2 top-2">
