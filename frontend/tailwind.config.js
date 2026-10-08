@@ -20,6 +20,16 @@ export default {
         display: ['Fraunces', 'Georgia', 'serif'],
         ui: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
       },
+      keyframes: {
+        // Déplace la piste de la moitié de sa largeur : la deuxième copie prend la place de la première.
+        marquee: {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        },
+      },
+      animation: {
+        marquee: 'marquee 70s linear infinite',
+      },
     },
   },
   plugins: [],

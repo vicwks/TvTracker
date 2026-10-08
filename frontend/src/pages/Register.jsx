@@ -68,11 +68,12 @@ export default function Register() {
         </>
       }
     >
-      <form onSubmit={submit} className="space-y-7">
+      <form onSubmit={submit} className="space-y-4">
         <AuthField
           id="email"
           type="email"
           label="Adresse email"
+          placeholder="nom@exemple.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
@@ -80,12 +81,13 @@ export default function Register() {
           spellCheck={false}
           required
           error={emailError}
-          hint={emailError ? undefined : 'Pour confirmer ton compte et récupérer ton mot de passe.'}
+          hint={emailError ? undefined : 'Un seul compte par adresse email.'}
         />
 
         <AuthField
           id="username"
           label="Pseudo"
+          placeholder="ton_pseudo"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
@@ -99,6 +101,7 @@ export default function Register() {
         <AuthField
           id="password"
           label="Mot de passe"
+          placeholder="Choisis un mot de passe"
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -113,6 +116,7 @@ export default function Register() {
         <AuthField
           id="confirm-password"
           label="Confirme le mot de passe"
+          placeholder="Retape-le ici"
           type={showPassword ? 'text' : 'password'}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}

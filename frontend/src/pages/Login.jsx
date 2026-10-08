@@ -43,10 +43,11 @@ export default function Login() {
         </>
       }
     >
-      <form onSubmit={submit} className="space-y-7">
+      <form onSubmit={submit} className="space-y-4">
         <AuthField
           id="username"
           label="Pseudo"
+          placeholder="ton_pseudo"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
@@ -58,6 +59,7 @@ export default function Login() {
         <AuthField
           id="password"
           label="Mot de passe"
+          placeholder="Ton mot de passe"
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}

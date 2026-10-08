@@ -21,12 +21,12 @@ export default function AuthField({ id, label, hint, error, suffix, ...inputProp
         {suffix}
       </div>
       {error ? (
-        <p id={errorId} className="mt-2 text-sm text-danger">
+        <p id={errorId} className="mt-1.5 text-sm text-danger">
           {error}
         </p>
       ) : (
         hint && (
-          <p id={hintId} className="mt-2 text-sm text-ink-muted">
+          <p id={hintId} className="mt-1.5 text-sm text-ink-muted">
             {hint}
           </p>
         )
