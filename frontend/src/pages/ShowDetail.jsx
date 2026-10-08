@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import client from '../api/client.js';
+import { useI18n } from '../i18n/LanguageContext.jsx';
 import EpisodeRow from '../components/EpisodeRow.jsx';
 import RatingStars from '../components/RatingStars.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import StatusMenu from '../components/StatusMenu.jsx';
 
+// Fiche d'une série : même mise en page qu'avant (affiche, progression, saisons repliables),
+// dans le style du site. Les actions restent les mêmes.
 export default function ShowDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [show, setShow] = useState(null);
   const [openSeason, setOpenSeason] = useState(null);
 
@@ -26,7 +30,13 @@ export default function ShowDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  if (!show) return <p className="p-8 text-zinc-500">Chargement...</p>;
+  if (!show) {
+    return (
+      <div className="flex min-h-[60dvh] items-center justify-center bg-ink font-ui text-ink-muted">
+        <p className="animate-pulse text-sm">{t('common.loading')}</p>
+      </div>
+    );
+  }
 
   const allEpisodes = show.seasons.flatMap((s) =>
     s.episodes.map((e) => ({ ...e, season_number: s.season_number, season_id: s.id }))
@@ -44,7 +54,7 @@ export default function ShowDetail() {
       );
       if (earlierUnwatched.length > 0) {
         const confirmBulk = window.confirm(
-          `Marquer aussi les ${earlierUnwatched.length} épisode(s) précédent(s) de "${season.name}" comme vus ?`
+          t('detail.bulkConfirm', { count: earlierUnwatched.length, season: season.name })
         );
         if (confirmBulk) {
           await client.patch(`/episodes/season/${season.id}/watched-up-to/${episode.episode_number}`);
@@ -83,122 +93,136 @@ export default function ShowDetail() {
   };
 
   const deleteShow = async () => {
-    if (!confirm('Supprimer cette série de ton suivi ?')) return;
+    if (!confirm(t('detail.confirmDeleteShow'))) return;
     await client.delete(`/shows/${id}`);
     navigate('/shows');
   };
 
+  const status = show.tracking_status || 'to_watch';
+
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="min-h-[70dvh] bg-ink font-ui text-paper">
       {show.backdrop_url && (
-        <div className="relative h-48 sm:h-56 rounded-xl overflow-hidden mb-[-4rem]">
-          <img src={show.backdrop_url} alt="" className="w-full h-full object-cover opacity-60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
+        <div className="relative h-56 overflow-hidden sm:h-72" aria-hidden="true">
+          <img src={show.backdrop_url} alt="" className="h-full w-full object-cover opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-transparent" />
         </div>
       )}
 
-      <div className="relative flex gap-6 mb-8 items-start">
-        {show.poster_url && (
-          <img
-            src={show.poster_url}
-            alt={show.title}
-            className="w-52 aspect-[2/3] object-cover rounded-xl shadow-lg shadow-black/40 shrink-0 ring-1 ring-zinc-800"
-          />
-        )}
-        <div className="flex-1 min-w-0 pt-2">
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">{show.title}</h1>
-            <StatusMenu status={show.tracking_status || 'to_watch'} onChange={changeStatus} size="md" />
-          </div>
-          <p className="text-sm text-zinc-500 mt-1">{show.genres}</p>
-          <p className="text-sm text-zinc-400 mt-3 line-clamp-4">{show.overview}</p>
-
-          <div className="mt-4">
-            <RatingStars value={show.rating} onChange={rateShow} />
-          </div>
-
-          <div className="mt-4 max-w-xs">
-            <ProgressBar
-              value={watchedEpisodes}
-              max={totalEpisodes}
-              status={show.tracking_status || 'to_watch'}
+      <div className={`mx-auto max-w-5xl px-6 pb-20 sm:px-8 ${show.backdrop_url ? '-mt-40 sm:-mt-48' : 'pt-14'}`}>
+        <div className="relative flex items-start gap-8">
+          {show.poster_url && (
+            <img
+              src={show.poster_url}
+              alt={show.title}
+              className="aspect-[2/3] w-36 shrink-0 rounded-md object-cover ring-1 ring-ink-line shadow-[0_24px_50px_-20px_rgba(0,0,0,0.8)] sm:w-52"
             />
-          </div>
-
-          {nextEpisode && (
-            <div className="mt-4 card p-3 flex items-center justify-between max-w-md">
-              <div className="min-w-0">
-                <p className="text-xs text-zinc-500">Prochain épisode</p>
-                <p className="text-sm font-medium text-zinc-100 truncate">
-                  S{nextEpisode.season_number}E{nextEpisode.episode_number} — {nextEpisode.title}
-                </p>
-              </div>
-              <button
-                onClick={() => toggleWatched(nextEpisode.id, true)}
-                className="btn-primary shrink-0 text-xs px-3 py-1.5 ml-3"
-              >
-                Marquer vu
-              </button>
-            </div>
           )}
 
-          <div className="mt-5 flex gap-2">
-            <button
-              onClick={() => client.post(`/shows/${id}/refresh`).then(load)}
-              className="btn-secondary text-xs px-3 py-1.5"
-            >
-              🔄 Rafraîchir depuis TMDB
-            </button>
-            <button onClick={deleteShow} className="btn-danger text-xs px-3 py-1.5">
-              Supprimer
-            </button>
+          <div className="min-w-0 flex-1 pt-2 sm:pt-16">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <h1 className="animate-rise font-display text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
+                {show.title}
+              </h1>
+              <StatusMenu status={status} onChange={changeStatus} size="md" />
+            </div>
+            {show.genres && (
+              <p className="mt-3 text-xs uppercase tracking-[0.18em] text-ink-muted">{show.genres}</p>
+            )}
+            <p className="mt-4 line-clamp-4 max-w-2xl leading-relaxed text-paper/75">{show.overview}</p>
+
+            <div className="mt-6">
+              <RatingStars value={show.rating} onChange={rateShow} />
+            </div>
+
+            <div className="mt-6 max-w-sm">
+              <ProgressBar value={watchedEpisodes} max={totalEpisodes} status={status} />
+            </div>
+
+            {nextEpisode && (
+              <div className="mt-8 flex max-w-md items-center justify-between gap-4 border-l-2 border-signal pl-4">
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-[0.18em] text-ink-muted">{t('detail.nextEpisode')}</p>
+                  <p className="mt-1 truncate font-display text-lg text-paper">
+                    S{nextEpisode.season_number}E{nextEpisode.episode_number}
+                    {nextEpisode.title ? ` · ${nextEpisode.title}` : ''}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleWatched(nextEpisode.id, true)}
+                  className="shrink-0 rounded-md bg-signal px-3.5 py-1.5 text-sm font-medium text-signal-ink transition hover:-translate-y-0.5 active:scale-[0.98]"
+                >
+                  {t('detail.markSeen')}
+                </button>
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-6 text-sm">
+              <button
+                type="button"
+                onClick={() => client.post(`/shows/${id}/refresh`).then(load)}
+                className="text-ink-muted underline-offset-4 transition hover:text-signal hover:underline"
+              >
+                {t('detail.refresh')}
+              </button>
+              <button
+                type="button"
+                onClick={deleteShow}
+                className="text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
+              >
+                {t('detail.delete')}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="space-y-3">
-        {show.seasons.map((season) => {
-          const watchedCount = season.episodes.filter((e) => e.watched).length;
-          const isOpen = openSeason === season.id;
-          return (
-            <div key={season.id} className="card">
-              <button
-                onClick={() => setOpenSeason(isOpen ? null : season.id)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-800/60 transition-colors"
-              >
-                <span className="font-medium text-sm text-zinc-100">
-                  {season.name} <span className="text-zinc-500">({watchedCount}/{season.episodes.length})</span>
-                </span>
-                <span className="flex items-center gap-3">
-                  <span
-                    role="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      markSeasonWatched(season.id, watchedCount < season.episodes.length);
-                    }}
-                    className="text-xs text-accent hover:underline"
+        <div className="mt-16">
+          {show.seasons.map((season) => {
+            const watchedCount = season.episodes.filter((e) => e.watched).length;
+            const isOpen = openSeason === season.id;
+            const allWatched = watchedCount === season.episodes.length;
+            return (
+              <div key={season.id} className="border-b border-ink-line first:border-t">
+                <div className="flex items-center justify-between gap-4 py-4">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSeason(isOpen ? null : season.id)}
+                    aria-expanded={isOpen}
+                    className="group flex min-w-0 flex-1 items-center gap-3 text-left"
                   >
-                    {watchedCount < season.episodes.length ? 'Tout marquer vu' : 'Tout marquer non vu'}
-                  </span>
-                  <span className="text-zinc-500 text-xs">{isOpen ? '▲' : '▼'}</span>
-                </span>
-              </button>
-              {isOpen && (
-                <div className="border-t border-zinc-800">
-                  {season.episodes.map((ep) => (
-                    <EpisodeRow
-                      key={ep.id}
-                      episode={ep}
-                      onToggleWatched={(epId, watched) => toggleWatched(epId, watched, ep, season)}
-                      onRate={rateEpisode}
-                      onRewatch={rewatchEpisode}
-                    />
-                  ))}
+                    <span className="font-display text-xl text-paper transition-colors group-hover:text-signal">
+                      {t('detail.seasonProgress', { season: season.name, watched: watchedCount, total: season.episodes.length })}
+                    </span>
+                    <span aria-hidden="true" className="text-xs text-ink-muted">
+                      {isOpen ? '▲' : '▼'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => markSeasonWatched(season.id, !allWatched)}
+                    className="shrink-0 text-xs text-signal underline-offset-4 hover:underline"
+                  >
+                    {allWatched ? t('detail.markSeasonUnwatched') : t('detail.markSeasonWatched')}
+                  </button>
                 </div>
-              )}
-            </div>
-          );
-        })}
+                {isOpen && (
+                  <div className="mb-4 border-t border-ink-line">
+                    {season.episodes.map((ep) => (
+                      <EpisodeRow
+                        key={ep.id}
+                        episode={ep}
+                        onToggleWatched={(epId, watched) => toggleWatched(epId, watched, ep, season)}
+                        onRate={rateEpisode}
+                        onRewatch={rewatchEpisode}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

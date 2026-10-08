@@ -134,6 +134,27 @@ export const fr = {
   rating: {
     label: 'Donner {star} sur {max}',
   },
+  detail: {
+    nextEpisode: 'Prochain épisode',
+    markSeen: 'Marquer vu',
+    refresh: 'Rafraîchir depuis TMDB',
+    delete: 'Supprimer',
+    confirmDeleteShow: 'Supprimer cette série de ton suivi ?',
+    bulkConfirm: {
+      one: 'Marquer aussi l’épisode précédent de « {season} » comme vu ?',
+      other: 'Marquer aussi les {count} épisodes précédents de « {season} » comme vus ?',
+    },
+    seasonProgress: '{season} ({watched}/{total})',
+    markSeasonWatched: 'Tout marquer vu',
+    markSeasonUnwatched: 'Tout marquer non vu',
+    rewatch: 'Marquer comme revu (nouveau visionnage)',
+    minutes: '{count} min',
+    movieWatched: '✓ Vu',
+    markWatched: 'Marquer comme vu',
+    confirmRemoveMovie: 'Retirer ce film de ton suivi ?',
+    notes: 'Notes personnelles',
+    notesPlaceholder: 'Tes impressions sur ce film…',
+  },
   friends: {
     kicker: 'Ta communauté',
     title: 'Amis',

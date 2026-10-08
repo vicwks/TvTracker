@@ -134,6 +134,27 @@ export const en = {
   rating: {
     label: 'Give {star} out of {max}',
   },
+  detail: {
+    nextEpisode: 'Next episode',
+    markSeen: 'Mark as seen',
+    refresh: 'Refresh from TMDB',
+    delete: 'Remove',
+    confirmDeleteShow: 'Remove this show from your tracking?',
+    bulkConfirm: {
+      one: 'Also mark the previous episode of “{season}” as seen?',
+      other: 'Also mark the {count} previous episodes of “{season}” as seen?',
+    },
+    seasonProgress: '{season} ({watched}/{total})',
+    markSeasonWatched: 'Mark all as seen',
+    markSeasonUnwatched: 'Mark all as not seen',
+    rewatch: 'Mark as rewatched (new viewing)',
+    minutes: '{count} min',
+    movieWatched: '✓ Seen',
+    markWatched: 'Mark as seen',
+    confirmRemoveMovie: 'Remove this movie from your tracking?',
+    notes: 'Personal notes',
+    notesPlaceholder: 'Your thoughts on this movie…',
+  },
   friends: {
     kicker: 'Your circle',
     title: 'Friends',
