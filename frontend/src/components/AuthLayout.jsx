@@ -22,7 +22,7 @@ export default function AuthLayout({ headline, intro, title, footer, children })
 
       <main className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden border-t border-ink-line bg-ink-soft px-6 py-6 sm:px-12 lg:border-l lg:border-t-0 lg:px-16 lg:py-10">
         <FloatingIcons />
-        <div className="relative z-10 mx-auto w-full max-w-md">
+        <div className="relative z-10 mx-auto w-full max-w-md rounded-2xl border border-ink-line bg-ink p-6 shadow-2xl shadow-black/40 sm:p-8">
           <h2 className="font-display text-2xl font-medium text-paper">{title}</h2>
           <div className="mt-6 lg:mt-8">{children}</div>
           <div className="mt-6 text-sm text-ink-muted lg:mt-8">{footer}</div>

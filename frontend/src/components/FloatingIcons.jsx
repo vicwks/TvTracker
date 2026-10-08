@@ -3,7 +3,8 @@ import { ICONS } from '../assets/icons.js';
 // Icônes de télé et de cinéma qui dérivent très lentement derrière le formulaire.
 // Positions fixes (pas d'aléatoire) : le rendu est identique à chaque chargement.
 // Décoratif : masqué aux lecteurs d'écran, sans effet sur le clic (pointer-events désactivés).
-// Placées dans les marges (gauche, droite, haut et bas) : le formulaire au centre reste lisible.
+// Le formulaire est un bloc opaque posé au-dessus : les icônes passent dessous, jamais dessus.
+// Durées en secondes pour un tour complet, à vitesse 1.
 const FLOATERS = [
   { icon: 'tv', top: 6, left: 8, size: 46, duration: 20, delay: 0 },
   { icon: 'film', top: 14, left: 84, size: 34, duration: 17, delay: 4 },
@@ -23,35 +24,54 @@ const FLOATERS = [
   { icon: 'film', top: 86, left: 6, size: 28, duration: 16, delay: 13 },
   { icon: 'popcorn', top: 10, left: 90, size: 28, duration: 22, delay: 16 },
   { icon: 'star', top: 24, left: 20, size: 20, duration: 15, delay: 4 },
+  { icon: 'film', top: 50, left: 16, size: 30, duration: 13, delay: 6 },
+  { icon: 'tv', top: 72, left: 42, size: 32, duration: 15, delay: 9 },
+  { icon: 'ticket', top: 22, left: 88, size: 26, duration: 14, delay: 3 },
+  { icon: 'video', top: 62, left: 92, size: 26, duration: 12, delay: 11 },
+  { icon: 'clapperboard', top: 92, left: 24, size: 30, duration: 15, delay: 7 },
+  { icon: 'star', top: 4, left: 30, size: 22, duration: 12, delay: 14 },
 ];
 
+// Vitesse : 1,35 fois plus rapide que la durée de base.
+const SPEED = 1.35;
+// Origine du temps, fixée une fois pour toute la visite. Quand on passe de la connexion à l'inscription,
+// le composant est recréé : chaque icône reprend sa position exacte au lieu de repartir de zéro.
+const EPOCH = Date.now();
+
 export default function FloatingIcons() {
+  const elapsed = (Date.now() - EPOCH) / 1000;
+
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden overflow-hidden sm:block">
-      {FLOATERS.map((f, i) => (
-        <svg
-          key={i}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="absolute animate-drift text-paper/[0.12] motion-reduce:animate-none"
-          style={{
-            top: `${f.top}%`,
-            left: `${f.left}%`,
-            width: f.size,
-            height: f.size,
-            animationDuration: `${f.duration}s`,
-            animationDelay: `-${f.delay}s`,
-          }}
-        >
-          {ICONS[f.icon].map(([Tag, props], j) => (
-            <Tag key={j} {...props} />
-          ))}
-        </svg>
-      ))}
+      {FLOATERS.map((f, i) => {
+        const duration = f.duration / SPEED;
+        // Décalage négatif = point de départ dans le cycle, calculé depuis EPOCH pour rester continu.
+        const phase = (elapsed + f.delay) % duration;
+        return (
+          <svg
+            key={i}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="absolute animate-drift text-paper/[0.12] motion-reduce:animate-none"
+            style={{
+              top: `${f.top}%`,
+              left: `${f.left}%`,
+              width: f.size,
+              height: f.size,
+              animationDuration: `${duration}s`,
+              animationDelay: `-${phase}s`,
+            }}
+          >
+            {ICONS[f.icon].map(([Tag, props], j) => (
+              <Tag key={j} {...props} />
+            ))}
+          </svg>
+        );
+      })}
     </div>
   );
 }
