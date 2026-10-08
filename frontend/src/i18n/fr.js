@@ -131,6 +131,26 @@ export const fr = {
       other: '{value} / {max} épisodes ({pct}%)',
     },
   },
+  rating: {
+    label: 'Donner {star} sur {max}',
+  },
+  myMovies: {
+    kicker: 'Ma bibliothèque',
+    title: 'Mes films',
+    searchPlaceholder: 'Rechercher dans mes films…',
+    tabs: {
+      all: 'Tous',
+      to_watch: 'À voir',
+      watched: 'Vus',
+    },
+    empty: 'Aucun film ici. Ajoute-en depuis la page « Rechercher ».',
+    noMatch: 'Aucun film ne correspond à « {query} ».',
+    markWatched: 'Marquer comme vu',
+    unmarkWatched: 'Marquer comme non vu',
+    remove: 'Retirer',
+    confirmRemove: 'Retirer ce film de ton suivi ?',
+    minutes: '{count} min',
+  },
   myShows: {
     kicker: 'Ma bibliothèque',
     title: 'Mes séries',

@@ -131,6 +131,26 @@ export const en = {
       other: '{value} / {max} episodes ({pct}%)',
     },
   },
+  rating: {
+    label: 'Give {star} out of {max}',
+  },
+  myMovies: {
+    kicker: 'My library',
+    title: 'My movies',
+    searchPlaceholder: 'Search my movies…',
+    tabs: {
+      all: 'All',
+      to_watch: 'To watch',
+      watched: 'Watched',
+    },
+    empty: 'No movies here yet. Add some from the Search page.',
+    noMatch: 'No movie matches “{query}”.',
+    markWatched: 'Mark as watched',
+    unmarkWatched: 'Mark as not watched',
+    remove: 'Remove',
+    confirmRemove: 'Remove this movie from your tracking?',
+    minutes: '{count} min',
+  },
   myShows: {
     kicker: 'My library',
     title: 'My shows',
