@@ -1,35 +1,27 @@
 import { useEffect, useState } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  CartesianGrid,
-} from 'recharts';
+import { Link } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import client from '../api/client.js';
+import { useI18n } from '../i18n/LanguageContext.jsx';
 
-const COLORS = ['#2dd4bf', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#f472b6', '#c084fc', '#a3e635'];
-
-// Formate un nombre de minutes en "X mois, Y j, Zh" (n'affiche que les unités pertinentes)
-function formatDuration(totalMinutes) {
+// Durée en « X mois, Y j, Zh » : seules les unités utiles sont affichées.
+function formatDuration(totalMinutes, t) {
   const totalHours = Math.floor(totalMinutes / 60);
   const months = Math.floor(totalHours / (24 * 30));
   const days = Math.floor((totalHours % (24 * 30)) / 24);
   const hours = totalHours % 24;
 
   const parts = [];
-  if (months > 0) parts.push(`${months} mois`);
-  if (days > 0) parts.push(`${days} j`);
-  if (hours > 0 || parts.length === 0) parts.push(`${hours}h`);
+  if (months > 0) parts.push(t('stats.duration.months', { count: months }));
+  if (days > 0) parts.push(t('stats.duration.days', { count: days }));
+  if (hours > 0 || parts.length === 0) parts.push(t('stats.duration.hours', { count: hours }));
   return parts.join(', ');
 }
 
+// Statistiques : tout ce qui est compté a été réellement vu (épisodes cochés, films vus).
+// Les données viennent de /stats, calculées côté serveur.
 export default function Stats() {
+  const { t, locale } = useI18n();
   const [stats, setStats] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState('');
@@ -43,11 +35,7 @@ export default function Stats() {
       .catch((err) => {
         console.error(err);
         const detail = err.response?.data?.details ? ` (${err.response.data.details})` : '';
-        setError(
-          (err.response?.data?.error ||
-            "Impossible de charger les statistiques. Vérifie que le backend tourne bien et que la migration de base de données a été relancée (npm run migrate).") +
-            detail
-        );
+        setError((err.response?.data?.error || t('stats.loadError')) + detail);
       });
   };
 
@@ -58,10 +46,10 @@ export default function Stats() {
     setMessage('');
     try {
       const { data } = await client.post('/shows/refresh-runtimes');
-      setMessage(`Durées mises à jour pour ${data.updated}/${data.total} séries ✅`);
+      setMessage(t('stats.runtimesUpdated', { updated: data.updated, total: data.total }));
       load();
     } catch {
-      setMessage('Erreur pendant la mise à jour des durées.');
+      setMessage(t('stats.runtimesError'));
     } finally {
       setRefreshing(false);
     }
@@ -72,10 +60,10 @@ export default function Stats() {
     setMessage('');
     try {
       const { data } = await client.post('/shows/clean-runtimes');
-      setMessage(`Nettoyage terminé : ${data.episodesFixed} épisode(s) et ${data.showsFixed} série(s) corrigés ✅`);
+      setMessage(t('stats.cleaned', { episodes: data.episodesFixed, shows: data.showsFixed }));
       load();
     } catch {
-      setMessage('Erreur pendant le nettoyage des durées.');
+      setMessage(t('stats.cleanError'));
     } finally {
       setRefreshing(false);
     }
@@ -83,94 +71,316 @@ export default function Stats() {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="card p-6 border-rose-900">
-          <p className="text-rose-300 text-sm">{error}</p>
-          <button onClick={load} className="btn-secondary text-xs px-3 py-1.5 mt-3">
-            Réessayer
+      <div className="min-h-[60dvh] bg-ink px-6 py-16 font-ui text-paper sm:px-8">
+        <div className="mx-auto max-w-xl">
+          <p className="font-display text-2xl">{t('common.oops')}</p>
+          <p className="mt-3 text-sm text-danger">{error}</p>
+          <button
+            type="button"
+            onClick={load}
+            className="mt-6 rounded-md border border-ink-line px-4 py-2 text-sm text-paper transition hover:border-signal hover:text-signal"
+          >
+            {t('common.retry')}
           </button>
         </div>
       </div>
     );
   }
-  if (!stats) return <p className="p-8 text-zinc-500">Chargement...</p>;
+
+  if (!stats) {
+    return (
+      <div className="flex min-h-[60dvh] items-center justify-center bg-ink font-ui text-ink-muted">
+        <p className="animate-pulse text-sm">{t('common.loading')}</p>
+      </div>
+    );
+  }
 
   const hours = Math.round(stats.totalMinutes / 60);
-  const durationLabel = formatDuration(stats.totalMinutes);
+  const durationLabel = formatDuration(stats.totalMinutes, t);
+  const hasViewing = stats.daysWatched > 0;
+
+  const monthlyData = stats.monthly.map((m) => ({
+    label: new Date(`${m.month}-01T00:00:00`).toLocaleDateString(locale, { month: 'short', year: '2-digit' }),
+    count: m.count,
+  }));
+
+  const maxGenreMinutes = Math.max(1, ...stats.genres.map((g) => g.minutes));
+  const weekdayNames = Array.from({ length: 7 }, (_, i) =>
+    new Date(2024, 0, 1 + i).toLocaleDateString(locale, { weekday: 'short' })
+  );
+  const weekdayFull = (i) => new Date(2024, 0, 1 + i).toLocaleDateString(locale, { weekday: 'long' });
+  const topWeekday = stats.weekdays.indexOf(Math.max(...stats.weekdays));
+  const topHour = stats.hours.indexOf(Math.max(...stats.hours));
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Statistiques</h1>
-        <div className="text-right">
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={cleanRuntimes}
-              disabled={refreshing}
-              className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-50"
-              title="Met à NULL les durées d'épisode aberrantes déjà stockées en base (> 4h)"
-            >
-              {refreshing ? '...' : '🧹 Nettoyer les durées aberrantes'}
-            </button>
-            <button
+    <div className="min-h-[70dvh] bg-ink font-ui text-paper">
+      <div className="mx-auto max-w-6xl px-6 pb-20 pt-14 sm:px-8 sm:pt-20">
+        <header className="animate-rise">
+          <p className="text-xs uppercase tracking-[0.25em] text-ink-muted">{t('stats.kicker')}</p>
+          <h1 className="mt-4 font-display text-5xl font-medium leading-[1.02] tracking-tight sm:text-7xl">
+            {t('stats.title')}
+          </h1>
+          <p className="mt-4 max-w-md text-ink-muted">{t('stats.subtitle')}</p>
+        </header>
+
+        {!hasViewing ? (
+          <p className="mt-12 border-l border-signal/60 pl-4 text-sm text-ink-muted">{t('stats.empty')}</p>
+        ) : (
+          <>
+            <section className="animate-rise mt-14 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-end" style={{ animationDelay: '100ms' }}>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">{t('stats.totalTime')}</p>
+                <p className="mt-3 font-display text-5xl font-medium leading-none tracking-tight text-signal sm:text-7xl">
+                  {durationLabel}
+                </p>
+                <p className="mt-4 text-ink-muted">{t('stats.hoursTotal', { count: hours })}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 lg:grid-cols-2">
+                <Stat value={stats.episodesWatched} label={t('stats.episodesWatched')} />
+                <Stat value={stats.moviesWatched} label={t('stats.moviesWatched')} />
+                <Stat value={stats.showsStarted} label={t('stats.showsStarted')} />
+                <Stat value={stats.showsCompleted} label={t('stats.showsCompleted')} />
+              </div>
+            </section>
+
+            <section className="animate-rise mt-12 grid grid-cols-2 gap-x-6 gap-y-8 border-y border-ink-line py-8 sm:grid-cols-4" style={{ animationDelay: '160ms' }}>
+              <Stat value={stats.rewatches} label={t('stats.rewatches')} />
+              <Stat
+                value={
+                  stats.averageRating === null ? '—' : <StarsDisplay value={stats.averageRating / 2} locale={locale} />
+                }
+                label={t('stats.averageRating')}
+                caption={stats.averageRating === null ? t('stats.noRating') : undefined}
+              />
+              <Stat value={stats.daysWatched} label={t('stats.daysWatched')} />
+              <Stat
+                value={t('stats.streakDays', { count: stats.longestStreak })}
+                label={t('stats.longestStreak')}
+                caption={
+                  stats.currentStreak > 0
+                    ? t('stats.streakCaption', { count: stats.currentStreak })
+                    : t('stats.streakNone')
+                }
+                small
+              />
+            </section>
+
+            <section className="animate-rise mt-16" style={{ animationDelay: '220ms' }}>
+              <SectionTitle title={t('stats.monthly')} />
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2b2822" vertical={false} />
+                    <XAxis dataKey="label" stroke="#9a9283" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#9a9283" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(245, 165, 36, 0.08)' }}
+                      contentStyle={{ background: '#171511', border: '1px solid #2b2822', borderRadius: 6, color: '#f4efe6' }}
+                      labelStyle={{ color: '#f4efe6' }}
+                      formatter={(value) => [value, t('stats.watchings')]}
+                    />
+                    <Bar dataKey="count" fill="#f5a524" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            <div className="mt-16 grid gap-14 lg:grid-cols-2">
+              <section className="animate-rise" style={{ animationDelay: '280ms' }}>
+                <SectionTitle title={t('stats.genres')} hint={t('stats.genresHint')} />
+                {stats.genres.length === 0 ? (
+                  <p className="text-sm text-ink-muted">{t('stats.nothing')}</p>
+                ) : (
+                  <ul className="space-y-5">
+                    {stats.genres.map((g) => (
+                      <li key={g.name}>
+                        <div className="flex items-baseline justify-between gap-4 text-sm">
+                          <span className="text-paper">{g.name}</span>
+                          <span className="shrink-0 text-xs tabular-nums text-ink-muted">
+                            {formatDuration(g.minutes, t)} · {t('stats.titlesCount', { count: g.count })}
+                          </span>
+                        </div>
+                        <div className="mt-2 h-1 overflow-hidden rounded-full bg-ink-line">
+                          <div
+                            className="h-full rounded-full bg-signal transition-all duration-700"
+                            style={{ width: `${(g.minutes / maxGenreMinutes) * 100}%` }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              <section className="animate-rise" style={{ animationDelay: '340ms' }}>
+                <SectionTitle title={t('stats.topShows')} />
+                {stats.topShows.length === 0 ? (
+                  <p className="text-sm text-ink-muted">{t('stats.nothing')}</p>
+                ) : (
+                  <ol className="divide-y divide-ink-line border-y border-ink-line">
+                    {stats.topShows.map((s, i) => (
+                      <li key={s.id}>
+                        <Link to={`/show/${s.id}`} className="group flex items-center gap-4 px-2 py-3 transition-colors hover:bg-ink-soft">
+                          <span className="w-6 shrink-0 text-center font-display text-2xl tabular-nums text-signal/70">
+                            {i + 1}
+                          </span>
+                          {s.poster_url ? (
+                            <img src={s.poster_url} alt="" className="h-14 w-10 shrink-0 rounded-sm object-cover ring-1 ring-ink-line" />
+                          ) : (
+                            <div className="h-14 w-10 shrink-0 rounded-sm bg-ink-soft ring-1 ring-ink-line" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-display text-lg text-paper">{s.title}</p>
+                            <p className="mt-1 text-xs text-ink-muted">
+                              {formatDuration(s.minutes, t)} · {t('stats.episodesCount', { count: s.episodes })}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+            </div>
+
+            <div className="mt-16 grid gap-14 lg:grid-cols-2">
+              <section className="animate-rise" style={{ animationDelay: '400ms' }}>
+                <SectionTitle title={t('stats.topMovies')} />
+                {stats.topMovies.length === 0 ? (
+                  <p className="text-sm text-ink-muted">{t('stats.noMovieRating')}</p>
+                ) : (
+                  <ol className="divide-y divide-ink-line border-y border-ink-line">
+                    {stats.topMovies.map((m, i) => (
+                      <li key={m.id}>
+                        <Link to={`/movie/${m.id}`} className="group flex items-center gap-4 px-2 py-3 transition-colors hover:bg-ink-soft">
+                          <span className="w-6 shrink-0 text-center font-display text-2xl tabular-nums text-signal/70">
+                            {i + 1}
+                          </span>
+                          {m.poster_url ? (
+                            <img src={m.poster_url} alt="" className="h-14 w-10 shrink-0 rounded-sm object-cover ring-1 ring-ink-line" />
+                          ) : (
+                            <div className="h-14 w-10 shrink-0 rounded-sm bg-ink-soft ring-1 ring-ink-line" />
+                          )}
+                          <p className="min-w-0 flex-1 truncate font-display text-lg text-paper">{m.title}</p>
+                          <StarsDisplay value={m.rating / 2} locale={locale} />
+                        </Link>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+
+              <section className="animate-rise" style={{ animationDelay: '460ms' }}>
+                <SectionTitle title={t('stats.rhythm')} />
+                <BarStrip values={stats.weekdays} labels={weekdayNames} />
+                <div className="mt-8">
+                  <BarStrip
+                    values={stats.hours}
+                    labels={stats.hours.map((_, h) => (h % 6 === 0 ? String(h) : ''))}
+                  />
+                </div>
+                <p className="mt-6 text-sm text-ink-muted">
+                  {t('stats.rhythmSentence', { weekday: weekdayFull(topWeekday), hour: topHour })}
+                </p>
+              </section>
+            </div>
+          </>
+        )}
+
+        <section className="mt-20 border-t border-ink-line pt-8">
+          <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">{t('stats.tools')}</p>
+          <div className="mt-5 grid gap-6 sm:grid-cols-2">
+            <Tool
+              label={refreshing ? t('stats.refreshing') : t('stats.refreshRuntimes')}
+              hint={t('stats.refreshRuntimesHint')}
               onClick={refreshRuntimes}
               disabled={refreshing}
-              className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-50"
-              title="TMDB ne renseigne pas toujours la durée de chaque épisode : ce bouton récupère la durée moyenne de chaque série pour affiner le calcul du temps visionné."
-            >
-              {refreshing ? 'Mise à jour en cours...' : '⏱️ Corriger les durées manquantes'}
-            </button>
+            />
+            <Tool
+              label={refreshing ? t('stats.cleaning') : t('stats.cleanRuntimes')}
+              hint={t('stats.cleanRuntimesHint')}
+              onClick={cleanRuntimes}
+              disabled={refreshing}
+            />
           </div>
-          {message && <p className="text-xs text-zinc-500 mt-1">{message}</p>}
-        </div>
+          {message && <p className="mt-5 text-sm text-ink-muted">{message}</p>}
+        </section>
       </div>
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="card p-4 text-center">
-          <p className="text-2xl font-bold text-accent">{durationLabel}</p>
-          <p className="text-sm text-zinc-500 mt-1">Temps total visionné ({hours}h)</p>
-        </div>
-        <div className="card p-4 text-center">
-          <p className="text-3xl font-bold text-accent">{stats.episodesWatched}</p>
-          <p className="text-sm text-zinc-500 mt-1">Épisodes vus</p>
-        </div>
-        <div className="card p-4 text-center">
-          <p className="text-3xl font-bold text-accent">{stats.moviesWatched}</p>
-          <p className="text-sm text-zinc-500 mt-1">Films vus</p>
-        </div>
-      </div>
+function SectionTitle({ title, hint }) {
+  return (
+    <div className="mb-6 flex items-baseline justify-between gap-4 border-b border-ink-line pb-3">
+      <h2 className="font-display text-2xl font-medium">{title}</h2>
+      {hint && <p className="shrink-0 text-xs text-ink-muted">{hint}</p>}
+    </div>
+  );
+}
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="card p-4">
-          <h2 className="text-sm font-semibold text-zinc-200 mb-3">Évolution mensuelle</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={stats.monthly}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-              <XAxis dataKey="month" stroke="#71717a" fontSize={12} />
-              <YAxis stroke="#71717a" fontSize={12} />
-              <Tooltip
-                contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }}
-                labelStyle={{ color: '#e4e4e7' }}
-              />
-              <Bar dataKey="count" fill="#2dd4bf" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+function Stat({ value, label, caption, small = false }) {
+  return (
+    <div>
+      <p className={`font-display font-medium tabular-nums text-paper ${small ? 'text-2xl sm:text-3xl' : 'text-4xl sm:text-5xl'}`}>
+        {value}
+      </p>
+      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-ink-muted">{label}</p>
+      {caption && <p className="mt-1 text-xs text-ink-muted/80">{caption}</p>}
+    </div>
+  );
+}
 
-        <div className="card p-4">
-          <h2 className="text-sm font-semibold text-zinc-200 mb-3">Répartition par genre</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={stats.genres} dataKey="value" nameKey="name" outerRadius={90} label>
-                {stats.genres.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }} />
-            </PieChart>
-          </ResponsiveContainer>
+// Note sur 5 étoiles, valeur à une décimale près (arrondie à l'étoile la plus proche pour l'affichage).
+function StarsDisplay({ value, locale }) {
+  const filled = Math.round(value);
+  return (
+    <span className="inline-flex items-baseline gap-2 whitespace-nowrap">
+      <span className="text-base leading-none" aria-hidden="true">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span key={i} className={i < filled ? 'text-signal' : 'text-ink-muted/40'}>
+            ★
+          </span>
+        ))}
+      </span>
+      <span className="text-sm tabular-nums text-ink-muted">
+        {value.toLocaleString(locale, { maximumFractionDigits: 1 })}/5
+      </span>
+    </span>
+  );
+}
+
+// Petites colonnes proportionnelles : jours de la semaine, heures de la journée.
+function BarStrip({ values, labels }) {
+  const max = Math.max(1, ...values);
+  return (
+    <div className="flex h-28 items-end gap-1.5">
+      {values.map((value, i) => (
+        <div key={i} className="flex h-full flex-1 flex-col justify-end gap-2">
+          <div
+            className="w-full rounded-t-sm bg-signal/80"
+            style={{ height: `${value > 0 ? Math.max((value / max) * 100, 4) : 0}%` }}
+            title={`${labels[i]} : ${value}`}
+          />
+          <span className="text-center text-[10px] uppercase tracking-[0.12em] text-ink-muted">{labels[i]}</span>
         </div>
-      </div>
+      ))}
+    </div>
+  );
+}
+
+function Tool({ label, hint, onClick, disabled }) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className="text-sm text-signal underline-offset-4 transition hover:underline disabled:opacity-50"
+      >
+        {label}
+      </button>
+      <p className="mt-1 text-xs text-ink-muted">{hint}</p>
     </div>
   );
 }
