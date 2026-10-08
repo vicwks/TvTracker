@@ -134,6 +134,14 @@ export const en = {
   rating: {
     label: 'Give {star} out of {max}',
   },
+  calendar: {
+    kicker: 'Coming up',
+    title: 'Calendar',
+    subtitle: 'Upcoming episodes of the shows you have in “To watch” and “Watching”.',
+    today: 'Today',
+    episode: 'S{season}E{episode}',
+    empty: 'No episode scheduled. Make sure you have shows in “To watch” or “Watching”.',
+  },
   watchlist: {
     kicker: 'For later',
     title: 'My watchlist',
