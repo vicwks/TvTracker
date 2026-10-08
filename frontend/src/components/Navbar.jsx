@@ -54,8 +54,17 @@ export default function Navbar() {
           <LanguageSwitch />
           {user && (
             <>
-              <Avatar user={user} size="w-7 h-7" />
-              <span className="hidden text-sm text-ink-muted sm:inline">{user.display_name}</span>
+              <Link
+                to="/settings"
+                title={t('nav.profile')}
+                aria-label={t('nav.profile')}
+                className="group flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 transition-colors hover:bg-ink-soft"
+              >
+                <Avatar user={user} size="w-7 h-7" />
+                <span className="hidden text-sm text-ink-muted transition-colors group-hover:text-paper sm:inline">
+                  {user.display_name}
+                </span>
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}

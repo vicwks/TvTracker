@@ -77,6 +77,9 @@ async function migrate() {
   // --- Comptes utilisateurs + amitiés ---
   await runSqlFile(connection, '002_users_and_social.sql');
 
+  // --- Photos de profil (table dédiée, une ligne par utilisateur) ---
+  await runSqlFile(connection, '003_avatars.sql');
+
   // --- Passage des tables "par série/épisode" à un modèle "par utilisateur" ---
   await addColumnIfMissing(connection, 'show_tracking', 'user_id INT NULL');
   await addColumnIfMissing(connection, 'watch_status', 'user_id INT NULL');

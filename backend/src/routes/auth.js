@@ -166,4 +166,104 @@ router.patch('/me', requireAuth, async (req, res) => {
   }
 });
 
+// Pseudo : il sert à se connecter et de nom affiché. Les deux changent ensemble.
+router.patch('/username', requireAuth, authLimiter, async (req, res) => {
+  try {
+    const username = typeof req.body.username === 'string' ? req.body.username.trim() : '';
+    if (!USERNAME_REGEX.test(username)) {
+      return res.status(400).json({
+        error: 'Le pseudo doit faire 3 à 20 caractères (lettres, chiffres, underscore uniquement).',
+      });
+    }
+    const [[taken]] = await pool.query('SELECT id FROM users WHERE username = ? AND id <> ?', [username, req.userId]);
+    if (taken) return res.status(409).json({ error: 'Ce pseudo est déjà pris.' });
+
+    await pool.query('UPDATE users SET username = ?, display_name = ? WHERE id = ?', [username, username, req.userId]);
+    res.json({ id: req.userId, username, display_name: username });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Ce pseudo est déjà pris.' });
+    console.error(err);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour du pseudo' });
+  }
+});
+
+router.patch('/password', requireAuth, authLimiter, async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body;
+    if (typeof current_password !== 'string' || !current_password) {
+      return res.status(400).json({ error: 'Renseigne ton mot de passe actuel.' });
+    }
+    const [[user]] = await pool.query('SELECT password_hash FROM users WHERE id = ?', [req.userId]);
+    if (!user) return res.status(401).json({ error: 'Non connecté' });
+    if (!(await verifyPassword(current_password, user.password_hash))) {
+      return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+    }
+    const passwordError = validatePassword(new_password);
+    if (passwordError) return res.status(400).json({ error: passwordError });
+
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [await hashPassword(new_password), req.userId]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur lors du changement de mot de passe' });
+  }
+});
+
+// Photo de profil : le navigateur envoie un JPEG carré déjà redimensionné (voir Settings.jsx).
+const AVATAR_PREFIX = 'data:image/jpeg;base64,';
+const AVATAR_MAX_BYTES = 300 * 1024;
+
+router.post('/avatar', requireAuth, async (req, res) => {
+  try {
+    const image = req.body.image;
+    if (typeof image !== 'string' || !image.startsWith(AVATAR_PREFIX)) {
+      return res.status(400).json({ error: 'Image invalide.' });
+    }
+    const buffer = Buffer.from(image.slice(AVATAR_PREFIX.length), 'base64');
+    if (buffer.length === 0 || buffer.length > AVATAR_MAX_BYTES) {
+      return res.status(400).json({ error: 'Image trop lourde (300 Ko maximum).' });
+    }
+
+    await pool.query(
+      `INSERT INTO user_avatars (user_id, mime_type, data) VALUES (?, 'image/jpeg', ?)
+       ON DUPLICATE KEY UPDATE mime_type = 'image/jpeg', data = VALUES(data)`,
+      [req.userId, buffer]
+    );
+    // Le numéro de version force le navigateur à recharger la photo après un changement.
+    const avatarUrl = `/api/auth/avatar/${req.userId}?v=${Date.now()}`;
+    await pool.query('UPDATE users SET avatar_url = ? WHERE id = ?', [avatarUrl, req.userId]);
+    res.json({ avatar_url: avatarUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur lors de l’enregistrement de la photo' });
+  }
+});
+
+router.delete('/avatar', requireAuth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM user_avatars WHERE user_id = ?', [req.userId]);
+    await pool.query('UPDATE users SET avatar_url = NULL WHERE id = ?', [req.userId]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur lors de la suppression de la photo' });
+  }
+});
+
+// Les photos sont visibles des amis (et apparaissent sur les affiches), donc tout utilisateur connecté peut les lire.
+router.get('/avatar/:id', requireAuth, async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isInteger(userId) || userId <= 0) return res.status(404).end();
+    const [[row]] = await pool.query('SELECT mime_type, data FROM user_avatars WHERE user_id = ?', [userId]);
+    if (!row) return res.status(404).end();
+    res.type(row.mime_type);
+    res.set('Cache-Control', 'private, max-age=86400');
+    res.send(row.data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).end();
+  }
+});
+
 export default router;

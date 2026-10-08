@@ -1,4 +1,5 @@
-export default function Avatar({ user, size = 'w-10 h-10' }) {
+// Photo de profil, ou à défaut l'initiale du nom sur fond ambre (couleur de l'identité).
+export default function Avatar({ user, size = 'w-10 h-10', initialClass = 'text-xs' }) {
   if (user.avatar_url) {
     return (
       <img
@@ -11,7 +12,8 @@ export default function Avatar({ user, size = 'w-10 h-10' }) {
   const initial = (user.display_name || user.username || '?')[0].toUpperCase();
   return (
     <div
-      className={`${size} rounded-full bg-accent/20 text-accent flex items-center justify-center font-semibold text-xs`}
+      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-signal/15 font-semibold text-signal ${initialClass}`}
+      aria-hidden="true"
     >
       {initial}
     </div>

@@ -17,6 +17,7 @@ import Watchlist from './pages/Watchlist.jsx';
 import CalendarPage from './pages/CalendarPage.jsx';
 import Stats from './pages/Stats.jsx';
 import Friends from './pages/Friends.jsx';
+import Settings from './pages/Settings.jsx';
 
 // Pages d'accès sans barre de navigation : elles ont leur propre mise en page.
 const AUTH_PATHS = ['/login', '/register'];
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
           <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
           <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Routes>
         {!isAuthPage && <Footer />}
       </div>
