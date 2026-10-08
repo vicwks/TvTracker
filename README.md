@@ -27,7 +27,7 @@ Trois branches permanentes :
 | Branche | Rôle | Où elle tourne |
 |---|---|---|
 | `dev` | Développement. **Toujours partir de cette branche.** | PC local |
-| `pre-prod` | Recette avant mise en production | Serveur externe (O2Switch), autre dossier |
+| `preprod` | Recette avant mise en production | Serveur externe (O2Switch), autre dossier |
 | `prod` | Production, branche principale du dépôt | Serveur externe (O2Switch), dossier de production |
 
 Pour un développement :
@@ -35,7 +35,7 @@ Pour un développement :
 1. Partir de `dev` à jour : `git switch dev` puis `git pull`.
 2. Créer une branche `feat/<nom-du-developpement>` : `git switch -c feat/<nom-du-developpement>`.
 3. Développer, committer, puis pousser la branche : `git push -u origin feat/<nom-du-developpement>`.
-4. Fusionner dans `dev` une fois le travail validé. Les branches `pre-prod` et `prod` ne reçoivent que des fusions venant de `dev`, jamais de développement direct.
+4. Fusionner dans `dev` une fois le travail validé. Les branches `preprod` et `prod` ne reçoivent que des fusions venant de `dev`, jamais de développement direct.
 
 La procédure est détaillée dans `documentation/maintenance.html`, section « Workflow Git ».
 
