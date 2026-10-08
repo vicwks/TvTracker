@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import AuthField from '../components/AuthField.jsx';
+import AuthButton from '../components/AuthButton.jsx';
 import PasswordToggle from '../components/PasswordToggle.jsx';
 import { errorMessage } from '../utils/errors.js';
 
@@ -17,8 +18,9 @@ export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  // Un seul interrupteur pour les deux champs de mot de passe : ils s'affichent ou se masquent ensemble.
+  // Un interrupteur par champ : l'œil ne change que le champ sur lequel on a cliqué.
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -51,8 +53,6 @@ export default function Register() {
       setLoading(false);
     }
   };
-
-  const eyeToggle = <PasswordToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />;
 
   return (
     <AuthLayout
@@ -87,7 +87,7 @@ export default function Register() {
         <AuthField
           id="username"
           label="Pseudo"
-          placeholder="ton_pseudo"
+          placeholder="Ton pseudo"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
@@ -109,21 +109,23 @@ export default function Register() {
           required
           minLength={PASSWORD_MIN}
           error={passwordTooShort ? `${PASSWORD_MIN} caractères minimum.` : ''}
-          suffix={eyeToggle}
+          suffix={<PasswordToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
         />
 
         <AuthField
           id="confirm-password"
           label="Confirme le mot de passe"
           placeholder="Retape-le ici"
-          type={showPassword ? 'text' : 'password'}
+          type={showConfirmPassword ? 'text' : 'password'}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
           required
           error={confirmError}
           hint={passwordsMatch ? 'Les mots de passe correspondent.' : undefined}
-          suffix={eyeToggle}
+          suffix={
+            <PasswordToggle visible={showConfirmPassword} onToggle={() => setShowConfirmPassword((v) => !v)} />
+          }
         />
 
         {error && (
@@ -132,13 +134,7 @@ export default function Register() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="w-full rounded-md bg-signal py-3 text-base font-medium text-signal-ink transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal disabled:opacity-50"
-        >
-          {loading ? 'Création en cours…' : 'Créer mon compte'}
-        </button>
+        <AuthButton disabled={!canSubmit}>{loading ? 'Création en cours…' : 'Créer mon compte'}</AuthButton>
       </form>
     </AuthLayout>
   );

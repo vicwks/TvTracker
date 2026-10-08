@@ -75,6 +75,13 @@ export async function getTrendingMovies(timeWindow = 'week') {
   return data.results;
 }
 
+// Tendances toutes catégories confondues, triées par popularité : séries et films mêlés.
+// "day" donne le vrai top du moment ; "week" serait plus stable.
+export async function getTrendingAll(timeWindow = 'day') {
+  const { data } = await tmdb.get(`/trending/all/${timeWindow}`);
+  return data.results;
+}
+
 export async function getShowGenres() {
   const { data } = await tmdb.get('/genre/tv/list');
   return data.genres;

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import AuthField from '../components/AuthField.jsx';
+import AuthButton from '../components/AuthButton.jsx';
 import PasswordToggle from '../components/PasswordToggle.jsx';
 import { errorMessage } from '../utils/errors.js';
 
@@ -47,7 +48,7 @@ export default function Login() {
         <AuthField
           id="username"
           label="Pseudo"
-          placeholder="ton_pseudo"
+          placeholder="Ton pseudo"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
@@ -74,13 +75,7 @@ export default function Login() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-signal py-3 text-base font-medium text-signal-ink transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal disabled:opacity-50"
-        >
-          {loading ? 'Connexion en cours…' : 'Se connecter'}
-        </button>
+        <AuthButton disabled={loading}>{loading ? 'Connexion en cours…' : 'Se connecter'}</AuthButton>
       </form>
     </AuthLayout>
   );

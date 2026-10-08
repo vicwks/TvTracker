@@ -1,39 +1,37 @@
 import { Router } from 'express';
 import { cached } from '../services/cache.js';
-import { getTrendingShows, getTrendingMovies, IMAGE_BASE_URL_LARGE } from '../services/tmdb.js';
+import { getTrendingAll, IMAGE_BASE_URL_LARGE } from '../services/tmdb.js';
 
 const router = Router();
 
 const HOUR = 60 * 60 * 1000;
-// Affiches décoratives de la page de connexion : elles changent peu, six heures suffisent.
-const POSTERS_TTL = 6 * HOUR;
+// Le top du moment bouge dans la journée : trois heures gardent les données fraîches sans gaspiller le quota TMDB.
+const POSTERS_TTL = 3 * HOUR;
 const POSTER_COUNT = 10;
 
-// Alterne films et séries pour que la sélection mêle les deux types.
-function mixPosters(shows, movies) {
-  const showItems = shows
-    .filter((s) => s.poster_path)
-    .map((s) => ({ tmdb_id: s.id, type: 'show', title: s.name, poster_url: `${IMAGE_BASE_URL_LARGE}${s.poster_path}` }));
-  const movieItems = movies
-    .filter((m) => m.poster_path && !m.adult)
-    .map((m) => ({ tmdb_id: m.id, type: 'movie', title: m.title, poster_url: `${IMAGE_BASE_URL_LARGE}${m.poster_path}` }));
-
-  const mixed = [];
-  const longest = Math.max(showItems.length, movieItems.length);
-  for (let i = 0; i < longest; i++) {
-    if (movieItems[i]) mixed.push(movieItems[i]);
-    if (showItems[i]) mixed.push(showItems[i]);
-  }
-  return mixed.slice(0, POSTER_COUNT);
+// Top 10 du moment, séries et films mêlés, dans l'ordre de popularité donné par TMDB.
+// Les personnes (media_type "person") et les éléments sans affiche sont écartés.
+function toTopPosters(results) {
+  return results
+    .filter((r) => (r.media_type === 'movie' || r.media_type === 'tv') && r.poster_path && !r.adult)
+    .slice(0, POSTER_COUNT)
+    .map((r) => {
+      const isShow = r.media_type === 'tv';
+      return {
+        tmdb_id: r.id,
+        type: isShow ? 'show' : 'movie',
+        title: isShow ? r.name : r.title,
+        poster_url: `${IMAGE_BASE_URL_LARGE}${r.poster_path}`,
+      };
+    });
 }
 
 // Route publique (pas de requireAuth) : seulement des titres et des affiches TMDB, rien de personnel.
 router.get('/posters', async (req, res) => {
   try {
-    const posters = await cached('public:posters', POSTERS_TTL, async () => {
-      const [shows, movies] = await Promise.all([getTrendingShows(), getTrendingMovies()]);
-      return mixPosters(shows, movies);
-    });
+    const posters = await cached('public:posters', POSTERS_TTL, async () =>
+      toTopPosters(await getTrendingAll('day'))
+    );
     res.json(posters);
   } catch (err) {
     console.error(err);
