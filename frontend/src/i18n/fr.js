@@ -125,6 +125,30 @@ export const fr = {
     typeShow: 'Série',
     typeMovie: 'Film',
   },
+  progress: {
+    episodes: {
+      one: '{value} / {max} épisode ({pct}%)',
+      other: '{value} / {max} épisodes ({pct}%)',
+    },
+  },
+  myShows: {
+    kicker: 'Ma bibliothèque',
+    title: 'Mes séries',
+    recompute: 'Recalculer les statuts',
+    recomputeHint: 'Passe automatiquement en « Terminé » les séries entièrement vues',
+    recomputing: 'Recalcul en cours…',
+    searchPlaceholder: 'Rechercher dans mes séries…',
+    tabs: {
+      all: 'Toutes',
+      to_watch: 'À voir',
+      watching: 'En cours',
+      paused: 'En pause',
+      completed: 'Terminées',
+      dropped: 'Abandonnées',
+    },
+    empty: 'Aucune série ici pour l’instant. Ajoute-en depuis la page « Rechercher ».',
+    noMatch: 'Aucune série ne correspond à « {query} ».',
+  },
   search: {
     kicker: 'Rechercher',
     title: 'Rechercher',

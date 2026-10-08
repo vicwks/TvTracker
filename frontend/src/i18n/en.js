@@ -125,6 +125,30 @@ export const en = {
     typeShow: 'Show',
     typeMovie: 'Movie',
   },
+  progress: {
+    episodes: {
+      one: '{value} / {max} episode ({pct}%)',
+      other: '{value} / {max} episodes ({pct}%)',
+    },
+  },
+  myShows: {
+    kicker: 'My library',
+    title: 'My shows',
+    recompute: 'Recalculate statuses',
+    recomputeHint: 'Automatically sets fully watched shows to “Completed”',
+    recomputing: 'Recalculating…',
+    searchPlaceholder: 'Search my shows…',
+    tabs: {
+      all: 'All',
+      to_watch: 'To watch',
+      watching: 'Watching',
+      paused: 'Paused',
+      completed: 'Completed',
+      dropped: 'Dropped',
+    },
+    empty: 'No shows here yet. Add some from the Search page.',
+    noMatch: 'No show matches “{query}”.',
+  },
   search: {
     kicker: 'Search',
     title: 'Search',
