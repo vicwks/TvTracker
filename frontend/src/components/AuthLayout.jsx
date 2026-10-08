@@ -1,5 +1,4 @@
 import PosterSlider from './PosterSlider.jsx';
-import FloatingIcons from './FloatingIcons.jsx';
 
 // Mise en page commune aux pages de connexion et d'inscription. Pas de défilement de page :
 // tout tient dans la hauteur de l'écran, le formulaire se resserre si besoin.
@@ -21,7 +20,6 @@ export default function AuthLayout({ headline, intro, title, footer, children })
       </PosterSlider>
 
       <main className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden border-t border-ink-line bg-ink-soft px-6 py-6 sm:px-12 lg:border-l lg:border-t-0 lg:px-16 lg:py-10">
-        <FloatingIcons />
         <div className="relative z-10 mx-auto w-full max-w-md rounded-2xl border border-ink-line bg-ink p-6 shadow-2xl shadow-black/40 sm:p-8">
           <h2 className="font-display text-2xl font-medium text-paper">{title}</h2>
           <div className="mt-6 lg:mt-8">{children}</div>
