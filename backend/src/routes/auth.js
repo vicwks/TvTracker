@@ -15,6 +15,10 @@ import { toTrimmedString } from '../utils/validation.js';
 const router = Router();
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+// Vérification simple : quelque chose@domaine.ext, sans espace. La validité réelle se vérifie par e-mail.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Limite alignée sur la colonne users.email (VARCHAR(190)) : voir migrate.js.
+const EMAIL_MAX_LENGTH = 190;
 
 // 20 tentatives par IP toutes les 15 minutes, pour l'inscription comme pour la connexion.
 const authLimiter = rateLimit({
@@ -35,8 +39,12 @@ function validatePassword(password) {
 
 router.post('/register', authLimiter, async (req, res) => {
   try {
-    const { username, password, display_name } = req.body;
+    const { email, username, password } = req.body;
 
+    const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    if (!cleanEmail || cleanEmail.length > EMAIL_MAX_LENGTH || !EMAIL_REGEX.test(cleanEmail)) {
+      return res.status(400).json({ error: 'Adresse email invalide.' });
+    }
     if (typeof username !== 'string' || !USERNAME_REGEX.test(username)) {
       return res.status(400).json({
         error: 'Le pseudo doit faire 3 à 20 caractères (lettres, chiffres, underscore uniquement).',
@@ -45,10 +53,15 @@ router.post('/register', authLimiter, async (req, res) => {
     const passwordError = validatePassword(password);
     if (passwordError) return res.status(400).json({ error: passwordError });
 
-    const displayName = toTrimmedString(display_name, 64) || username;
-
-    const [[existing]] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
+    // Le nom affiché est le pseudo : il n'est plus demandé séparément à l'inscription.
+    const [[existing]] = await pool.query('SELECT username, email FROM users WHERE username = ? OR email = ?', [
+      username,
+      cleanEmail,
+    ]);
     if (existing) {
+      if (existing.email === cleanEmail) {
+        return res.status(409).json({ error: 'Cette adresse email est déjà utilisée.' });
+      }
       return res.status(409).json({ error: 'Ce pseudo est déjà pris.' });
     }
 
@@ -56,14 +69,17 @@ router.post('/register', authLimiter, async (req, res) => {
     let userId;
     try {
       const [result] = await pool.query(
-        'INSERT INTO users (username, display_name, password_hash) VALUES (?, ?, ?)',
-        [username, displayName, passwordHash]
+        'INSERT INTO users (email, username, display_name, password_hash) VALUES (?, ?, ?, ?)',
+        [cleanEmail, username, username, passwordHash]
       );
       userId = result.insertId;
     } catch (err) {
-      // Deux inscriptions simultanées sur le même pseudo : la contrainte UNIQUE tranche.
+      // Deux inscriptions simultanées : la contrainte UNIQUE tranche, le nom de la clé indique laquelle.
       if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(409).json({ error: 'Ce pseudo est déjà pris.' });
+        const emailTaken = err.message.includes('uniq_user_email');
+        return res.status(409).json({
+          error: emailTaken ? 'Cette adresse email est déjà utilisée.' : 'Ce pseudo est déjà pris.',
+        });
       }
       throw err;
     }
@@ -78,7 +94,7 @@ router.post('/register', authLimiter, async (req, res) => {
     }
 
     res.cookie('token', signToken(userId), COOKIE_OPTIONS);
-    res.status(201).json({ id: userId, username, display_name: displayName });
+    res.status(201).json({ id: userId, username, display_name: username });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur lors de l'inscription" });

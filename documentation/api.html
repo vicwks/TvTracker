@@ -58,7 +58,7 @@
     <table>
       <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>Description</th></tr></thead>
       <tbody>
-        <tr><td>POST</td><td><code>/api/auth/register</code></td><td>public</td><td>Crée un compte. Le tout premier compte récupère les données déjà présentes en base.</td></tr>
+        <tr><td>POST</td><td><code>/api/auth/register</code></td><td>public</td><td>Crée un compte à partir de <code>{ email, username, password }</code>. Le nom affiché prend la valeur du pseudo. Le tout premier compte récupère les données déjà présentes en base.</td></tr>
         <tr><td>POST</td><td><code>/api/auth/login</code></td><td>public</td><td>Vérifie le mot de passe et pose le cookie <code>token</code>.</td></tr>
         <tr><td>POST</td><td><code>/api/auth/logout</code></td><td>public</td><td>Supprime le cookie.</td></tr>
         <tr><td>GET</td><td><code>/api/auth/me</code></td><td><span class="tag">auth</span></td><td>Profil de l'utilisateur connecté.</td></tr>

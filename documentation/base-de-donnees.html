@@ -65,7 +65,7 @@
     <table>
       <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
       <tbody>
-        <tr><td><code>users</code></td><td>Pseudo unique (32 car. max), nom affiché, hash bcrypt du mot de passe, avatar optionnel.</td></tr>
+        <tr><td><code>users</code></td><td>Pseudo unique (32 car. max), email unique (obligatoire à l'inscription, vide pour les comptes antérieurs), nom affiché (égal au pseudo), hash bcrypt du mot de passe, avatar optionnel.</td></tr>
         <tr><td><code>friendships</code></td><td>Demande d'ami (<code>pending</code>) puis relation acceptée (<code>accepted</code>). Unicité sur <code>(requester_id, addressee_id)</code>.</td></tr>
       </tbody>
     </table>

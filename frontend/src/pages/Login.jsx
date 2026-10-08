@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import AuthField from '../components/AuthField.jsx';
+import PasswordToggle from '../components/PasswordToggle.jsx';
 import { errorMessage } from '../utils/errors.js';
 
 export default function Login() {
@@ -62,15 +63,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
           required
-          suffix={
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="shrink-0 rounded text-sm text-ink-muted hover:text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
-            >
-              {showPassword ? 'Masquer' : 'Afficher'}
-            </button>
-          }
+          suffix={<PasswordToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
         />
 
         {error && (

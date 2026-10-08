@@ -139,6 +139,12 @@ async function migrate() {
   // --- Date de dernière synchronisation TMDB (évite de rappeler TMDB à chaque aperçu) ---
   await addColumnIfMissing(connection, 'shows', 'synced_at DATETIME NULL');
 
+  // --- Adresse email des comptes (obligatoire à l'inscription, vide pour les comptes d'avant).
+  // La contrainte UNIQUE accepte plusieurs NULL, donc les anciens comptes ne posent pas de problème.
+  // 190 caractères : un index UNIQUE en utf8mb4 ne peut pas dépasser 1000 octets (190 x 4 = 760).
+  await addColumnIfMissing(connection, 'users', 'email VARCHAR(190) NULL');
+  await addUniqueIfMissing(connection, 'users', 'uniq_user_email', 'email');
+
   // --- Index pour les requêtes fréquentes : calendrier, statistiques, listes ---
   await addIndexIfMissing(connection, 'episodes', 'idx_episode_air_date', 'air_date');
   await addIndexIfMissing(connection, 'show_tracking', 'idx_tracking_user_status', 'user_id, status');
