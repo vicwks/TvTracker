@@ -1,0 +1,234 @@
+// English texts. Same keys as fr.js (missing keys fall back to French).
+// Placeholders: {name}. A { one, other } value is picked by the `count` parameter.
+// Legal texts use two markers: [[to complete]] (amber, to be filled in) and <<label|/path>> (link).
+export const en = {
+  common: {
+    brand: 'TV Tracker',
+    loading: 'Loading…',
+    oops: 'Oops.',
+    retry: 'Try again',
+    unreachable: "Can't reach the server. Check that the application is running.",
+  },
+  language: {
+    label: 'Language',
+    fr: 'Français',
+    en: 'English',
+  },
+  nav: {
+    main: 'Main navigation',
+    dashboard: 'Dashboard',
+    discover: 'Discover',
+    search: 'Search',
+    shows: 'My shows',
+    movies: 'My movies',
+    watchlist: 'Watchlist',
+    calendar: 'Calendar',
+    stats: 'Stats',
+    friends: 'Friends',
+    logout: 'Log out',
+  },
+  status: {
+    to_watch: 'To watch',
+    watching: 'Watching',
+    paused: 'Paused',
+    completed: 'Completed',
+    dropped: 'Dropped',
+  },
+  footer: {
+    tagline: 'Follow your shows and movies, see where you are, never miss an episode.',
+    navigation: 'Navigation',
+    navigationAria: 'Footer navigation',
+    information: 'Information',
+    terms: 'Terms of use',
+    legal: 'Legal notice',
+    copyright: '© {year} TV Tracker',
+    tmdbBefore: 'Show and movie data comes from',
+    tmdbLink: 'TMDB',
+    tmdbAfter: '. This product is not endorsed or certified by TMDB.',
+  },
+  auth: {
+    types: { show: 'Show', movie: 'Movie' },
+    poster: {
+      aria: 'Top 10 right now, shows and movies',
+      rank: 'No.{rank} · {type}',
+    },
+    passwordShow: 'Show password',
+    passwordHide: 'Hide password',
+    login: {
+      headline: 'Pick up where you left off.',
+      intro: "Your shows, your movies and the episodes you haven't seen yet, in one place.",
+      title: 'Log in',
+      noAccount: 'No account yet?',
+      createLink: 'Create one in a minute',
+      username: 'Username',
+      usernamePlaceholder: 'Your username',
+      password: 'Password',
+      passwordPlaceholder: 'Your password',
+      submit: 'Log in',
+      submitting: 'Logging in…',
+      failed: 'Could not log in.',
+    },
+    register: {
+      headline: 'Start your log.',
+      intro: 'Create your account, then log what you have already watched. You can also start from scratch.',
+      title: 'Create an account',
+      hasAccount: 'Already registered?',
+      loginLink: 'Log in',
+      email: 'Email address',
+      emailPlaceholder: 'name@example.com',
+      emailInvalid: 'This address does not look valid.',
+      emailHint: 'One account per email address.',
+      username: 'Username',
+      usernamePlaceholder: 'Your username',
+      usernameInvalid: '3 to 20 characters: letters, digits or underscore.',
+      usernameHint: 'Letters, digits and underscore. It is how people find you.',
+      password: 'Password',
+      passwordPlaceholder: '{min} characters minimum',
+      passwordShort: '{min} characters minimum.',
+      confirm: 'Confirm password',
+      confirmPlaceholder: 'Type it again',
+      confirmMismatch: 'The two passwords do not match.',
+      confirmMatch: 'The passwords match.',
+      submit: 'Create my account',
+      submitting: 'Creating account…',
+      failed: 'Could not create the account.',
+    },
+  },
+  dashboard: {
+    kicker: 'Dashboard',
+    greetingBefore: 'Welcome back,',
+    greetingAfter: '.',
+    subtitle: 'Here is where you are in your viewing.',
+    searchLabel: 'Find a show or movie you follow',
+    noResult: 'No result for “{query}”.',
+    loadError:
+      'Could not load the dashboard. Check that the backend is running and that the database migration has been run (npm run migrate).',
+    hours: '{count} h',
+    stats: {
+      hours: 'Hours watched',
+      watching: 'Shows in progress',
+      episodes: 'Episodes watched',
+      movies: 'Movies watched',
+    },
+    watching: 'Currently watching',
+    allShows: 'All my shows',
+    noWatching: 'No show in progress for now.',
+    findShow: 'Go find one to follow',
+    upcoming: 'Upcoming episodes',
+    fullCalendar: 'Full calendar',
+    noUpcoming: 'Nothing scheduled in the next 14 days.',
+    episodesProgress: {
+      one: '{watched} / {total} episode',
+      other: '{watched} / {total} episodes',
+    },
+    episodeCode: 'S{season}E{episode}',
+    typeShow: 'Show',
+    typeMovie: 'Movie',
+  },
+  pagination: {
+    label: 'Pagination',
+    previous: '← Previous',
+    next: 'Next →',
+    page: 'Page {page}',
+  },
+  legal: {
+    notice:
+      'Draft text. Review and complete before any public launch. Information in square brackets still needs to be filled in.',
+    cgu: {
+      title: 'Terms of use',
+      sections: [
+        {
+          title: '1. Purpose',
+          paragraphs: [
+            'TV Tracker lets you follow the shows and movies you watch: status, episodes seen, ratings, watchlist and calendar of upcoming episodes. These terms govern access to and use of the service.',
+          ],
+        },
+        {
+          title: '2. Access and account',
+          paragraphs: [
+            'Creating an account requires a valid email address, a unique username (3 to 20 characters: letters, digits and underscore) and a password of at least 8 characters. Each email address can be used for one account only.',
+            'You are responsible for keeping your login details confidential. Report any unauthorised use of your account to the address given in the legal notice.',
+          ],
+        },
+        {
+          title: '3. Use',
+          paragraphs: [
+            'The service is intended for personal, non-commercial use. It is forbidden to disrupt the service, to automate it abusively, to impersonate another person or to publish unlawful content on it.',
+          ],
+        },
+        {
+          title: '4. Personal data',
+          paragraphs: [
+            'We collect the email address, username, password and the tracking data you enter (shows, episodes, ratings, friends). Passwords are never stored in clear: they are hashed.',
+            'The data is used only to run the service. You can ask to access, correct or delete your data at the address given in the legal notice. [[retention period, legal basis and processors to be completed]]',
+          ],
+        },
+        {
+          title: '5. Cookies',
+          paragraphs: [
+            'The service uses a single cookie, named « token », which keeps you logged in. It is strictly necessary for the service to work and is not used for advertising.',
+          ],
+        },
+        {
+          title: '6. Third-party data',
+          paragraphs: [
+            'Information about shows and movies (titles, posters, air dates) comes from the TMDB API. Content remains the property of its rights holders. This service is neither endorsed nor certified by TMDB.',
+          ],
+        },
+        {
+          title: '7. Availability and liability',
+          paragraphs: [
+            'The service is provided as is. It may be interrupted for maintenance or technical reasons. Air dates and episode lists come from third-party sources: their accuracy is not guaranteed.',
+          ],
+        },
+        {
+          title: '8. Changes',
+          paragraphs: [
+            'These terms may change. The version in force is the one published on the site. Continuing to use the service after a change means you accept it.',
+          ],
+        },
+        {
+          title: '9. Governing law',
+          paragraphs: ['[[governing law and competent courts to be completed]]'],
+        },
+      ],
+    },
+    mentions: {
+      title: 'Legal notice',
+      sections: [
+        {
+          title: 'Publisher of the site',
+          items: [
+            'Name or company name: [[to be completed]]',
+            'Status: [[individual or company, registration number if applicable]]',
+            'Address: [[to be completed]]',
+            'Contact: [[email address to be completed]]',
+            'Publication director: [[to be completed]]',
+          ],
+        },
+        {
+          title: 'Hosting',
+          paragraphs: ['Host: [[name, address and contact details of the host to be completed]]'],
+        },
+        {
+          title: 'Third-party data',
+          paragraphs: [
+            'Information about shows and movies comes from the TMDB API. This service is neither endorsed nor certified by TMDB.',
+          ],
+        },
+        {
+          title: 'Intellectual property',
+          paragraphs: [
+            'The code and layout of TV Tracker are protected. Posters, titles and visuals of works belong to their rights holders and are shown for information only.',
+          ],
+        },
+        {
+          title: 'Personal data and contact',
+          paragraphs: [
+            'To exercise your rights over your data, write to the contact address above. Details of processing are in the <<terms of use|/cgu>>.',
+          ],
+        },
+      ],
+    },
+  },
+};

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n/LanguageContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import AuthField from '../components/AuthField.jsx';
 import AuthButton from '../components/AuthButton.jsx';
@@ -13,6 +14,7 @@ const PASSWORD_MIN = 8;
 
 export default function Register() {
   const { register } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -25,12 +27,11 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   // Contrôles en direct : un message n'apparaît que si le champ a été rempli.
-  const emailError = email && !EMAIL_REGEX.test(email.trim()) ? 'Cette adresse ne semble pas valide.' : '';
-  const usernameError =
-    username && !USERNAME_REGEX.test(username) ? '3 à 20 caractères : lettres, chiffres ou underscore.' : '';
+  const emailError = email && !EMAIL_REGEX.test(email.trim()) ? t('auth.register.emailInvalid') : '';
+  const usernameError = username && !USERNAME_REGEX.test(username) ? t('auth.register.usernameInvalid') : '';
   const passwordTooShort = password.length > 0 && password.length < PASSWORD_MIN;
   const passwordsMatch = confirmPassword.length > 0 && confirmPassword === password;
-  const confirmError = confirmPassword && !passwordsMatch ? 'Les deux mots de passe ne correspondent pas.' : '';
+  const confirmError = confirmPassword && !passwordsMatch ? t('auth.register.confirmMismatch') : '';
 
   const canSubmit =
     !loading &&
@@ -48,7 +49,7 @@ export default function Register() {
       await register({ email: email.trim(), username, password });
       navigate('/');
     } catch (err) {
-      setError(errorMessage(err, 'Inscription impossible.'));
+      setError(errorMessage(err, t('auth.register.failed'), t('common.unreachable')));
     } finally {
       setLoading(false);
     }
@@ -56,14 +57,14 @@ export default function Register() {
 
   return (
     <AuthLayout
-      headline="Commence ton carnet."
-      intro="Crée ton compte, puis note ce que tu as déjà vu. Tu peux aussi repartir de zéro."
-      title="Créer un compte"
+      headline={t('auth.register.headline')}
+      intro={t('auth.register.intro')}
+      title={t('auth.register.title')}
       footer={
         <>
-          Déjà inscrit ?{' '}
+          {t('auth.register.hasAccount')}{' '}
           <Link to="/login" className="text-signal underline-offset-4 hover:underline">
-            Se connecter
+            {t('auth.register.loginLink')}
           </Link>
         </>
       }
@@ -72,8 +73,8 @@ export default function Register() {
         <AuthField
           id="email"
           type="email"
-          label="Adresse email"
-          placeholder="nom@exemple.com"
+          label={t('auth.register.email')}
+          placeholder={t('auth.register.emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
@@ -81,13 +82,13 @@ export default function Register() {
           spellCheck={false}
           required
           error={emailError}
-          hint={emailError ? undefined : 'Un seul compte par adresse email.'}
+          hint={emailError ? undefined : t('auth.register.emailHint')}
         />
 
         <AuthField
           id="username"
-          label="Pseudo"
-          placeholder="Ton pseudo"
+          label={t('auth.register.username')}
+          placeholder={t('auth.register.usernamePlaceholder')}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
@@ -95,34 +96,34 @@ export default function Register() {
           spellCheck={false}
           required
           error={usernameError}
-          hint={usernameError ? undefined : 'Lettres, chiffres et underscore. Il sert à te retrouver.'}
+          hint={usernameError ? undefined : t('auth.register.usernameHint')}
         />
 
         <AuthField
           id="password"
-          label="Mot de passe"
-          placeholder={`${PASSWORD_MIN} caractères minimum`}
+          label={t('auth.register.password')}
+          placeholder={t('auth.register.passwordPlaceholder', { min: PASSWORD_MIN })}
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
           required
           minLength={PASSWORD_MIN}
-          error={passwordTooShort ? `${PASSWORD_MIN} caractères minimum.` : ''}
+          error={passwordTooShort ? t('auth.register.passwordShort', { min: PASSWORD_MIN }) : ''}
           suffix={<PasswordToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
         />
 
         <AuthField
           id="confirm-password"
-          label="Confirme le mot de passe"
-          placeholder="Retape-le ici"
+          label={t('auth.register.confirm')}
+          placeholder={t('auth.register.confirmPlaceholder')}
           type={showConfirmPassword ? 'text' : 'password'}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
           required
           error={confirmError}
-          hint={passwordsMatch ? 'Les mots de passe correspondent.' : undefined}
+          hint={passwordsMatch ? t('auth.register.confirmMatch') : undefined}
           suffix={
             <PasswordToggle visible={showConfirmPassword} onToggle={() => setShowConfirmPassword((v) => !v)} />
           }
@@ -134,7 +135,9 @@ export default function Register() {
           </p>
         )}
 
-        <AuthButton disabled={!canSubmit}>{loading ? 'Création en cours…' : 'Créer mon compte'}</AuthButton>
+        <AuthButton disabled={!canSubmit}>
+          {loading ? t('auth.register.submitting') : t('auth.register.submit')}
+        </AuthButton>
       </form>
     </AuthLayout>
   );

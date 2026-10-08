@@ -1,18 +1,22 @@
+import { useI18n } from '../i18n/LanguageContext.jsx';
+
 // Pagination numérotée, dans le style du site d'accès (ambre pour la page active).
 export default function Pagination({ page, pageCount, onChange }) {
+  const { t } = useI18n();
+
   if (pageCount <= 1) return null;
 
   const pages = Array.from({ length: pageCount }, (_, i) => i + 1);
 
   return (
-    <nav aria-label="Pagination" className="mt-10 flex flex-wrap items-center justify-center gap-2 font-ui text-sm">
+    <nav aria-label={t('pagination.label')} className="mt-10 flex flex-wrap items-center justify-center gap-2 font-ui text-sm">
       <button
         type="button"
         onClick={() => onChange(page - 1)}
         disabled={page === 1}
         className="rounded-md border border-ink-line px-3 py-1.5 text-ink-muted transition hover:border-signal hover:text-signal disabled:opacity-40 disabled:hover:border-ink-line disabled:hover:text-ink-muted"
       >
-        ← Précédent
+        {t('pagination.previous')}
       </button>
 
       <ul className="flex flex-wrap gap-1">
@@ -22,7 +26,7 @@ export default function Pagination({ page, pageCount, onChange }) {
               type="button"
               onClick={() => onChange(p)}
               aria-current={p === page ? 'page' : undefined}
-              aria-label={`Page ${p}`}
+              aria-label={t('pagination.page', { page: p })}
               className={`min-w-9 rounded-md px-3 py-1.5 tabular-nums transition ${
                 p === page ? 'bg-signal font-medium text-signal-ink' : 'text-ink-muted hover:text-paper'
               }`}
@@ -39,7 +43,7 @@ export default function Pagination({ page, pageCount, onChange }) {
         disabled={page === pageCount}
         className="rounded-md border border-ink-line px-3 py-1.5 text-ink-muted transition hover:border-signal hover:text-signal disabled:opacity-40 disabled:hover:border-ink-line disabled:hover:text-ink-muted"
       >
-        Suivant →
+        {t('pagination.next')}
       </button>
     </nav>
   );

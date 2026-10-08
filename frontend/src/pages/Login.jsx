@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n/LanguageContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import AuthField from '../components/AuthField.jsx';
 import AuthButton from '../components/AuthButton.jsx';
@@ -9,6 +10,7 @@ import { errorMessage } from '../utils/errors.js';
 
 export default function Login() {
   const { login } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +26,7 @@ export default function Login() {
       await login(username, password);
       navigate('/');
     } catch (err) {
-      setError(errorMessage(err, 'Connexion impossible.'));
+      setError(errorMessage(err, t('auth.login.failed'), t('common.unreachable')));
     } finally {
       setLoading(false);
     }
@@ -32,14 +34,14 @@ export default function Login() {
 
   return (
     <AuthLayout
-      headline="Reprends là où tu t’es arrêté."
-      intro="Tes séries, tes films et les épisodes que tu n’as pas encore vus, au même endroit."
-      title="Connexion"
+      headline={t('auth.login.headline')}
+      intro={t('auth.login.intro')}
+      title={t('auth.login.title')}
       footer={
         <>
-          Pas encore de compte ?{' '}
+          {t('auth.login.noAccount')}{' '}
           <Link to="/register" className="text-signal underline-offset-4 hover:underline">
-            Crée-le en une minute
+            {t('auth.login.createLink')}
           </Link>
         </>
       }
@@ -47,8 +49,8 @@ export default function Login() {
       <form onSubmit={submit} className="space-y-4">
         <AuthField
           id="username"
-          label="Pseudo"
-          placeholder="Ton pseudo"
+          label={t('auth.login.username')}
+          placeholder={t('auth.login.usernamePlaceholder')}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
@@ -59,8 +61,8 @@ export default function Login() {
 
         <AuthField
           id="password"
-          label="Mot de passe"
-          placeholder="Ton mot de passe"
+          label={t('auth.login.password')}
+          placeholder={t('auth.login.passwordPlaceholder')}
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -75,7 +77,7 @@ export default function Login() {
           </p>
         )}
 
-        <AuthButton disabled={loading}>{loading ? 'Connexion en cours…' : 'Se connecter'}</AuthButton>
+        <AuthButton disabled={loading}>{loading ? t('auth.login.submitting') : t('auth.login.submit')}</AuthButton>
       </form>
     </AuthLayout>
   );

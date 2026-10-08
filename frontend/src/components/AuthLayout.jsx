@@ -1,4 +1,5 @@
 import PosterSlider from './PosterSlider.jsx';
+import LanguageSwitch from './LanguageSwitch.jsx';
 
 // Mise en page commune aux pages de connexion et d'inscription. Pas de défilement de page :
 // tout tient dans la hauteur de l'écran, le formulaire se resserre si besoin.
@@ -33,6 +34,7 @@ export default function AuthLayout({ headline, intro, title, footer, children })
           className="pointer-events-none absolute inset-0 hidden bg-signal/70 lg:block"
           style={{ clipPath: `polygon(${SLANT} 0, calc(${SLANT} + 3px) 0, 3px 100%, 0 100%)` }}
         />
+        <LanguageSwitch className="absolute right-6 top-5 z-20 sm:right-12" />
         <div className="relative z-10 mx-auto w-full max-w-md">
           <h2 className="font-display text-2xl font-medium text-paper">{title}</h2>
           <div className="mt-6 lg:mt-8">{children}</div>

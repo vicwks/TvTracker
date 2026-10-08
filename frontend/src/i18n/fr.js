@@ -1,0 +1,234 @@
+// Textes en français (langue par défaut).
+// Variables entre accolades : {name}. Une valeur { one, other } est choisie selon le paramètre `count`.
+// Les textes juridiques utilisent deux marqueurs : [[à compléter]] (ambre, à renseigner) et <<libellé|/chemin>> (lien).
+export const fr = {
+  common: {
+    brand: 'TV Tracker',
+    loading: 'Chargement…',
+    oops: 'Oups.',
+    retry: 'Réessayer',
+    unreachable: "Impossible de joindre le serveur. Vérifie que l'application est bien lancée.",
+  },
+  language: {
+    label: 'Langue',
+    fr: 'Français',
+    en: 'English',
+  },
+  nav: {
+    main: 'Navigation principale',
+    dashboard: 'Tableau de bord',
+    discover: 'Découvrir',
+    search: 'Rechercher',
+    shows: 'Mes séries',
+    movies: 'Mes films',
+    watchlist: 'Watchlist',
+    calendar: 'Calendrier',
+    stats: 'Stats',
+    friends: 'Amis',
+    logout: 'Déconnexion',
+  },
+  status: {
+    to_watch: 'À voir',
+    watching: 'En cours',
+    paused: 'En pause',
+    completed: 'Terminé',
+    dropped: 'Abandonné',
+  },
+  footer: {
+    tagline: 'Suis tes séries et tes films, retrouve où tu en es, ne rate aucun épisode.',
+    navigation: 'Navigation',
+    navigationAria: 'Navigation du pied de page',
+    information: 'Informations',
+    terms: "Conditions générales d'utilisation",
+    legal: 'Mentions légales',
+    copyright: '© {year} TV Tracker',
+    tmdbBefore: 'Les données de séries et de films proviennent de',
+    tmdbLink: 'TMDB',
+    tmdbAfter: ". Ce produit n'est pas approuvé ni certifié par TMDB.",
+  },
+  auth: {
+    types: { show: 'Série', movie: 'Film' },
+    poster: {
+      aria: 'Top 10 du moment, séries et films',
+      rank: 'N°{rank} · {type}',
+    },
+    passwordShow: 'Afficher le mot de passe',
+    passwordHide: 'Masquer le mot de passe',
+    login: {
+      headline: 'Reprends là où tu t’es arrêté.',
+      intro: 'Tes séries, tes films et les épisodes que tu n’as pas encore vus, au même endroit.',
+      title: 'Connexion',
+      noAccount: 'Pas encore de compte ?',
+      createLink: 'Crée-le en une minute',
+      username: 'Pseudo',
+      usernamePlaceholder: 'Ton pseudo',
+      password: 'Mot de passe',
+      passwordPlaceholder: 'Ton mot de passe',
+      submit: 'Se connecter',
+      submitting: 'Connexion en cours…',
+      failed: 'Connexion impossible.',
+    },
+    register: {
+      headline: 'Commence ton carnet.',
+      intro: 'Crée ton compte, puis note ce que tu as déjà vu. Tu peux aussi repartir de zéro.',
+      title: 'Créer un compte',
+      hasAccount: 'Déjà inscrit ?',
+      loginLink: 'Se connecter',
+      email: 'Adresse email',
+      emailPlaceholder: 'nom@exemple.com',
+      emailInvalid: 'Cette adresse ne semble pas valide.',
+      emailHint: 'Un seul compte par adresse email.',
+      username: 'Pseudo',
+      usernamePlaceholder: 'Ton pseudo',
+      usernameInvalid: '3 à 20 caractères : lettres, chiffres ou underscore.',
+      usernameHint: 'Lettres, chiffres et underscore. Il sert à te retrouver.',
+      password: 'Mot de passe',
+      passwordPlaceholder: '{min} caractères minimum',
+      passwordShort: '{min} caractères minimum.',
+      confirm: 'Confirme le mot de passe',
+      confirmPlaceholder: 'Retape-le ici',
+      confirmMismatch: 'Les deux mots de passe ne correspondent pas.',
+      confirmMatch: 'Les mots de passe correspondent.',
+      submit: 'Créer mon compte',
+      submitting: 'Création en cours…',
+      failed: 'Inscription impossible.',
+    },
+  },
+  dashboard: {
+    kicker: 'Tableau de bord',
+    greetingBefore: 'Bon retour,',
+    greetingAfter: '.',
+    subtitle: 'Voici où tu en es dans tes visionnages.',
+    searchLabel: 'Retrouver une série ou un film suivi',
+    noResult: 'Aucun résultat pour « {query} ».',
+    loadError:
+      'Impossible de charger le tableau de bord. Vérifie que le backend tourne bien et que la migration de base de données a été relancée (npm run migrate).',
+    hours: '{count} h',
+    stats: {
+      hours: 'Heures visionnées',
+      watching: 'Séries en cours',
+      episodes: 'Épisodes vus',
+      movies: 'Films vus',
+    },
+    watching: 'En cours de visionnage',
+    allShows: 'Toutes mes séries',
+    noWatching: 'Aucune série en cours pour le moment.',
+    findShow: 'Va en chercher une à suivre',
+    upcoming: 'Prochains épisodes',
+    fullCalendar: 'Calendrier complet',
+    noUpcoming: 'Rien de prévu dans les 14 prochains jours.',
+    episodesProgress: {
+      one: '{watched} / {total} épisode',
+      other: '{watched} / {total} épisodes',
+    },
+    episodeCode: 'S{season}E{episode}',
+    typeShow: 'Série',
+    typeMovie: 'Film',
+  },
+  pagination: {
+    label: 'Pagination',
+    previous: '← Précédent',
+    next: 'Suivant →',
+    page: 'Page {page}',
+  },
+  legal: {
+    notice:
+      'Texte provisoire. À relire et à compléter avant toute mise en ligne publique. Les informations entre crochets restent à renseigner.',
+    cgu: {
+      title: "Conditions générales d'utilisation",
+      sections: [
+        {
+          title: '1. Objet',
+          paragraphs: [
+            "TV Tracker permet de suivre les séries et les films que l'on regarde : statut, épisodes vus, notes, liste à voir et calendrier des prochains épisodes. Les présentes conditions encadrent l'accès et l'utilisation du service.",
+          ],
+        },
+        {
+          title: '2. Accès et compte',
+          paragraphs: [
+            "La création d'un compte demande une adresse email valide, un pseudo unique (3 à 20 caractères : lettres, chiffres et underscore) et un mot de passe d'au moins 8 caractères. Chaque adresse email ne peut servir qu'à un seul compte.",
+            "Tu es responsable de la confidentialité de tes identifiants. Signale-nous tout usage non autorisé de ton compte à l'adresse indiquée dans les mentions légales.",
+          ],
+        },
+        {
+          title: '3. Utilisation',
+          paragraphs: [
+            "Le service est destiné à un usage personnel et non commercial. Il est interdit de porter atteinte au fonctionnement du service, de l'automatiser de manière abusive, d'usurper l'identité d'une autre personne ou d'y publier des contenus illicites.",
+          ],
+        },
+        {
+          title: '4. Données personnelles',
+          paragraphs: [
+            "Nous collectons l'adresse email, le pseudo, le mot de passe et les données de suivi que tu saisis (séries, épisodes, notes, amis). Le mot de passe n'est jamais conservé en clair : il est haché.",
+            "Les données servent uniquement au fonctionnement du service. Tu peux demander l'accès, la rectification ou la suppression de tes données à l'adresse indiquée dans les mentions légales. [[durée de conservation, base légale et sous-traitants à compléter]]",
+          ],
+        },
+        {
+          title: '5. Cookies',
+          paragraphs: [
+            'Le service utilise un seul cookie, nommé « token », qui maintient ta session de connexion. Il est strictement nécessaire au fonctionnement et n\'est utilisé à aucune fin publicitaire.',
+          ],
+        },
+        {
+          title: '6. Données de tiers',
+          paragraphs: [
+            "Les informations sur les séries et les films (titres, affiches, dates de diffusion) proviennent de l'API de TMDB. Les contenus restent la propriété de leurs ayants droit. Ce service n'est ni approuvé ni certifié par TMDB.",
+          ],
+        },
+        {
+          title: '7. Disponibilité et responsabilité',
+          paragraphs: [
+            "Le service est fourni en l'état. Il peut être interrompu pour maintenance ou pour des raisons techniques. Les dates de diffusion et les listes d'épisodes proviennent de sources tierces : leur exactitude n'est pas garantie.",
+          ],
+        },
+        {
+          title: '8. Modifications',
+          paragraphs: [
+            'Ces conditions peuvent évoluer. La version en vigueur est celle publiée sur le site. Continuer à utiliser le service après une modification vaut acceptation.',
+          ],
+        },
+        {
+          title: '9. Droit applicable',
+          paragraphs: ['[[droit applicable et juridiction compétente à compléter]]'],
+        },
+      ],
+    },
+    mentions: {
+      title: 'Mentions légales',
+      sections: [
+        {
+          title: 'Éditeur du site',
+          items: [
+            'Nom ou raison sociale : [[à compléter]]',
+            "Statut : [[particulier ou entreprise, numéro d'immatriculation le cas échéant]]",
+            'Adresse : [[à compléter]]',
+            'Contact : [[adresse email à compléter]]',
+            'Directeur de la publication : [[à compléter]]',
+          ],
+        },
+        {
+          title: 'Hébergement',
+          paragraphs: ["Hébergeur : [[nom, adresse et contact de l'hébergeur à compléter]]"],
+        },
+        {
+          title: 'Données de tiers',
+          paragraphs: [
+            "Les informations sur les séries et les films proviennent de l'API de TMDB. Ce service n'est ni approuvé ni certifié par TMDB.",
+          ],
+        },
+        {
+          title: 'Propriété intellectuelle',
+          paragraphs: [
+            "Le code et la mise en page de TV Tracker sont protégés. Les affiches, titres et visuels des œuvres appartiennent à leurs ayants droit et sont affichés à titre d'information.",
+          ],
+        },
+        {
+          title: 'Données personnelles et contact',
+          paragraphs: [
+            "Pour exercer tes droits sur tes données, écris à l'adresse de contact ci-dessus. Le détail du traitement figure dans les <<conditions générales d'utilisation|/cgu>>.",
+          ],
+        },
+      ],
+    },
+  },
+};

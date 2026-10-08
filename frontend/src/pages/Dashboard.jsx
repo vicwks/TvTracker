@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import client from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n/LanguageContext.jsx';
 import StatusMenu from '../components/StatusMenu.jsx';
 import Pagination from '../components/Pagination.jsx';
 
@@ -12,6 +13,7 @@ const WATCHING_PER_PAGE = 10;
 // Les composants partagés (ShowCard, ProgressBar...) ne sont pas modifiés : le style est local à cette page.
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t, locale } = useI18n();
   const [shows, setShows] = useState([]);
   const [movies, setMovies] = useState([]);
   const [calendar, setCalendar] = useState([]);
@@ -39,11 +41,7 @@ export default function Dashboard() {
       .catch((err) => {
         console.error(err);
         const detail = err.response?.data?.details ? ` (${err.response.data.details})` : '';
-        setError(
-          (err.response?.data?.error ||
-            "Impossible de charger le tableau de bord. Vérifie que le backend tourne bien et que la migration de base de données a été relancée (npm run migrate).") +
-            detail
-        );
+        setError((err.response?.data?.error || t('dashboard.loadError')) + detail);
       })
       .finally(() => setLoading(false));
   };
@@ -82,7 +80,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex min-h-[60dvh] items-center justify-center bg-ink font-ui text-ink-muted">
-        <p className="animate-pulse text-sm">Chargement…</p>
+        <p className="animate-pulse text-sm">{t('common.loading')}</p>
       </div>
     );
   }
@@ -91,19 +89,21 @@ export default function Dashboard() {
     return (
       <div className="min-h-[60dvh] bg-ink px-6 py-16 font-ui text-paper sm:px-8">
         <div className="mx-auto max-w-xl">
-          <p className="font-display text-2xl">Oups.</p>
+          <p className="font-display text-2xl">{t('common.oops')}</p>
           <p className="mt-3 text-sm text-danger">{error}</p>
           <button
             type="button"
             onClick={load}
             className="mt-6 rounded-md border border-ink-line px-4 py-2 text-sm text-paper transition hover:border-signal hover:text-signal"
           >
-            Réessayer
+            {t('common.retry')}
           </button>
         </div>
       </div>
     );
   }
+
+  const displayName = user?.display_name || user?.username;
 
   return (
     <div className="min-h-screen bg-ink font-ui text-paper">
@@ -116,21 +116,22 @@ export default function Dashboard() {
         )}
 
         <div className="relative mx-auto max-w-6xl px-6 pb-12 pt-14 sm:px-8 sm:pt-20">
-          <p className="animate-rise text-xs uppercase tracking-[0.25em] text-ink-muted">Tableau de bord</p>
+          <p className="animate-rise text-xs uppercase tracking-[0.25em] text-ink-muted">{t('dashboard.kicker')}</p>
           <h1
             className="animate-rise mt-4 font-display text-5xl font-medium leading-[1.02] tracking-tight sm:text-7xl"
             style={{ animationDelay: '80ms' }}
           >
-            Bon retour,{' '}
-            <span className="italic text-signal">{user?.display_name || user?.username}</span>.
+            {t('dashboard.greetingBefore')}{' '}
+            <span className="italic text-signal">{displayName}</span>
+            {t('dashboard.greetingAfter')}
           </h1>
           <p className="animate-rise mt-4 max-w-md text-ink-muted" style={{ animationDelay: '160ms' }}>
-            Voici où tu en es dans tes visionnages.
+            {t('dashboard.subtitle')}
           </p>
 
           <div className="animate-rise relative mt-10 max-w-md" style={{ animationDelay: '240ms' }}>
             <label htmlFor="dashboard-search" className="sr-only">
-              Retrouver une série ou un film suivi
+              {t('dashboard.searchLabel')}
             </label>
             <div className="group flex items-center gap-3 border-b border-ink-line transition-colors focus-within:border-signal">
               <svg
@@ -150,7 +151,7 @@ export default function Dashboard() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Retrouver une série ou un film suivi"
+                placeholder={t('dashboard.searchLabel')}
                 className="min-w-0 flex-1 bg-transparent py-2.5 text-base text-paper placeholder:text-ink-muted/60 focus:outline-none"
               />
             </div>
@@ -158,7 +159,7 @@ export default function Dashboard() {
             {q && (
               <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-md border border-ink-line bg-ink-soft shadow-2xl shadow-black/50">
                 {searchResults.length === 0 ? (
-                  <p className="px-4 py-3 text-sm text-ink-muted">Aucun résultat pour « {query} ».</p>
+                  <p className="px-4 py-3 text-sm text-ink-muted">{t('dashboard.noResult', { query })}</p>
                 ) : (
                   searchResults.map((r) => (
                     <Link
@@ -174,7 +175,7 @@ export default function Dashboard() {
                       )}
                       <span className="min-w-0 flex-1 truncate font-display text-base text-paper">{r.title}</span>
                       <span className="shrink-0 text-[10px] uppercase tracking-[0.2em] text-ink-muted">
-                        {r.type === 'show' ? 'Série' : 'Film'}
+                        {r.type === 'show' ? t('dashboard.typeShow') : t('dashboard.typeMovie')}
                       </span>
                     </Link>
                   ))
@@ -191,21 +192,25 @@ export default function Dashboard() {
             className="animate-rise grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:divide-x sm:divide-ink-line"
             style={{ animationDelay: '320ms' }}
           >
-            <Stat value={`${hours} h`} label="Heures visionnées" accent />
-            <Stat value={watching.length} label="Séries en cours" />
-            <Stat value={stats.episodesWatched} label="Épisodes vus" />
-            <Stat value={stats.moviesWatched} label="Films vus" />
+            <Stat value={t('dashboard.hours', { count: hours })} label={t('dashboard.stats.hours')} accent />
+            <Stat value={watching.length} label={t('dashboard.stats.watching')} />
+            <Stat value={stats.episodesWatched} label={t('dashboard.stats.episodes')} />
+            <Stat value={stats.moviesWatched} label={t('dashboard.stats.movies')} />
           </section>
         )}
 
         <section>
-          <SectionHeader title="En cours de visionnage" to="/shows" linkLabel="Toutes mes séries" />
+          <SectionHeader
+            title={t('dashboard.watching')}
+            to="/shows"
+            linkLabel={t('dashboard.allShows')}
+          />
 
           {watching.length === 0 ? (
             <Empty>
-              Aucune série en cours pour le moment.{' '}
+              {t('dashboard.noWatching')}{' '}
               <Link to="/search" className="text-signal underline-offset-4 hover:underline">
-                Va en chercher une à suivre
+                {t('dashboard.findShow')}
               </Link>
               .
             </Empty>
@@ -231,10 +236,10 @@ export default function Dashboard() {
         </section>
 
         <section>
-          <SectionHeader title="Prochains épisodes" to="/calendar" linkLabel="Calendrier complet" />
+          <SectionHeader title={t('dashboard.upcoming')} to="/calendar" linkLabel={t('dashboard.fullCalendar')} />
 
           {calendar.length === 0 ? (
-            <Empty>Rien de prévu dans les 14 prochains jours.</Empty>
+            <Empty>{t('dashboard.noUpcoming')}</Empty>
           ) : (
             <ul className="divide-y divide-ink-line border-y border-ink-line">
               {calendar.map((ep, i) => (
@@ -255,7 +260,7 @@ export default function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-display text-xl text-paper">{ep.show_title}</p>
                       <p className="mt-1 truncate text-xs uppercase tracking-[0.18em] text-ink-muted">
-                        S{ep.season_number}E{ep.episode_number}
+                        {t('dashboard.episodeCode', { season: ep.season_number, episode: ep.episode_number })}
                         {ep.episode_title ? ` · ${ep.episode_title}` : ''}
                       </p>
                     </div>
@@ -263,7 +268,7 @@ export default function Dashboard() {
                       dateTime={ep.air_date}
                       className="shrink-0 text-sm tabular-nums text-signal transition-transform group-hover:-translate-x-1"
                     >
-                      {formatDate(ep.air_date)}
+                      {formatDate(ep.air_date, locale)}
                     </time>
                   </Link>
                 </li>
@@ -276,20 +281,17 @@ export default function Dashboard() {
   );
 }
 
-function formatDate(isoDate) {
+function formatDate(isoDate, locale) {
   if (!isoDate) return '';
   const date = new Date(`${isoDate}T00:00:00`);
-  return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  return date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 function SectionHeader({ title, to, linkLabel }) {
   return (
     <div className="mb-8 flex items-end justify-between gap-4 border-b border-ink-line pb-4">
       <h2 className="font-display text-3xl font-medium tracking-tight">{title}</h2>
-      <Link
-        to={to}
-        className="shrink-0 text-sm text-signal underline-offset-4 hover:underline"
-      >
+      <Link to={to} className="shrink-0 text-sm text-signal underline-offset-4 hover:underline">
         {linkLabel} →
       </Link>
     </div>
@@ -312,6 +314,7 @@ function Empty({ children }) {
 }
 
 function WatchCard({ show, delay, onStatusChange }) {
+  const { t } = useI18n();
   const total = show.total_episodes || 0;
   const watched = show.watched_episodes || 0;
   const percent = total ? Math.min(100, Math.round((watched / total) * 100)) : 0;
@@ -335,7 +338,7 @@ function WatchCard({ show, delay, onStatusChange }) {
         </div>
         <h3 className="mt-3 line-clamp-1 font-display text-lg text-paper">{show.title}</h3>
         <p className="mt-1 text-xs tabular-nums text-ink-muted">
-          {watched} / {total} épisodes
+          {t('dashboard.episodesProgress', { count: total, watched, total })}
         </p>
         <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-ink-line" aria-hidden="true">
           <div className="h-full rounded-full bg-signal transition-all duration-700" style={{ width: `${percent}%` }} />

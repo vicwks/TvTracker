@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import client from '../api/client.js';
+import { useI18n } from '../i18n/LanguageContext.jsx';
 
 // Carrousel d'affiches en plein fond : colonne de gauche des pages de connexion et d'inscription.
 // Il change tout seul, en boucle, sans commande. Le texte (enfants) est posé au-dessus.
 const SLIDE_MS = 2500;
 const TRANSITION_MS = 700;
-const TYPE_LABELS = { show: 'Série', movie: 'Film' };
 // Voile sombre : foncé en bas (légende) et à gauche (titre), pour que le texte reste lisible sur toutes les affiches.
 const VEIL_STYLE = {
   backgroundImage:
@@ -19,6 +19,7 @@ export default function PosterSlider({ className = '', children }) {
   const [position, setPosition] = useState(0);
   const [animate, setAnimate] = useState(true);
   const [paused, setPaused] = useState(false);
+  const { t } = useI18n();
   const count = posters.length;
   const hasPosters = count > 0;
   const slideCount = count + 1;
@@ -64,8 +65,7 @@ export default function PosterSlider({ className = '', children }) {
 
   return (
     <section
-      aria-roledescription={hasPosters ? 'carrousel' : undefined}
-      aria-label={hasPosters ? 'Top 10 du moment, séries et films' : undefined}
+      aria-label={hasPosters ? t('auth.poster.aria') : undefined}
       className={`relative flex flex-col justify-between overflow-hidden ${className}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -101,7 +101,7 @@ export default function PosterSlider({ className = '', children }) {
         <div className="relative z-10 min-w-0">
           <p className="truncate font-display text-lg text-paper">{shown.title}</p>
           <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">
-            {`N°${rank} · ${TYPE_LABELS[shown.type]}`}
+            {t('auth.poster.rank', { rank, type: t(`auth.types.${shown.type}`) })}
           </p>
         </div>
       )}

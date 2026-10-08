@@ -1,11 +1,15 @@
+import { useI18n } from '../i18n/LanguageContext.jsx';
+
 // Bouton œil pour afficher ou masquer un mot de passe.
 // Mot de passe masqué : œil ouvert (cliquer pour afficher). Mot de passe affiché : œil barré (cliquer pour masquer).
 export default function PasswordToggle({ visible, onToggle }) {
+  const { t } = useI18n();
+
   return (
     <button
       type="button"
       onClick={onToggle}
-      aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+      aria-label={visible ? t('auth.passwordHide') : t('auth.passwordShow')}
       aria-pressed={visible}
       className="shrink-0 rounded p-1 text-ink-muted transition hover:text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
     >
