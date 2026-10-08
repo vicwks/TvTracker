@@ -119,14 +119,14 @@ docker compose exec backend sh -c "wget -qO- http://localhost:5000/api/health"</
       <tbody>
         <tr><td><code>dev</code></td><td>Développement. Point de départ de tout développement.</td><td>PC local</td></tr>
         <tr><td><code>pre-prod</code></td><td>Recette avant mise en production.</td><td>Serveur externe (O2Switch), autre dossier</td></tr>
-        <tr><td><code>main</code></td><td>Production. Branche principale du dépôt.</td><td>Serveur externe (O2Switch), dossier de production</td></tr>
+        <tr><td><code>prod</code></td><td>Production. Branche principale du dépôt.</td><td>Serveur externe (O2Switch), dossier de production</td></tr>
       </tbody>
     </table>
     <ol>
       <li>Partir de <code>dev</code> à jour : <code>git switch dev</code>, puis <code>git pull</code>.</li>
       <li>Créer la branche de travail : <code>git switch -c feat/&lt;nom-du-developpement&gt;</code>.</li>
       <li>Committer, puis pousser : <code>git push -u origin feat/&lt;nom-du-developpement&gt;</code>.</li>
-      <li>Fusionner dans <code>dev</code> une fois validé. <code>pre-prod</code> et <code>main</code> ne reçoivent que des fusions depuis <code>dev</code>.</li>
+      <li>Fusionner dans <code>dev</code> une fois validé. <code>pre-prod</code> et <code>prod</code> ne reçoivent que des fusions depuis <code>dev</code>.</li>
     </ol>
 
     <h2>Journal des modifications</h2>
