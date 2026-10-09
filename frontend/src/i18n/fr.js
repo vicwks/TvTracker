@@ -136,7 +136,6 @@ export const fr = {
   detail: {
     nextEpisode: 'Prochain épisode',
     markSeen: 'Marquer vu',
-    refresh: 'Rafraîchir depuis TMDB',
     delete: 'Supprimer',
     confirmDeleteShow: 'Supprimer cette série de ton suivi ?',
     bulkConfirm: {
@@ -245,18 +244,6 @@ export const fr = {
       one: '{count} jour',
       other: '{count} jours',
     },
-    tools: 'Outils de maintenance',
-    cleanRuntimes: 'Nettoyer les durées aberrantes',
-    cleanRuntimesHint: 'Efface les durées d’épisode aberrantes déjà stockées (plus de 4 h).',
-    refreshRuntimes: 'Corriger les durées manquantes',
-    refreshRuntimesHint:
-      'TMDB ne renseigne pas toujours la durée de chaque épisode : récupère la durée moyenne de chaque série pour affiner le calcul.',
-    refreshing: 'Mise à jour en cours…',
-    cleaning: 'Nettoyage en cours…',
-    runtimesUpdated: 'Durées mises à jour pour {updated}/{total} séries ✅',
-    runtimesError: 'Erreur pendant la mise à jour des durées.',
-    cleaned: 'Nettoyage terminé : {episodes} épisode(s) et {shows} série(s) corrigés ✅',
-    cleanError: 'Erreur pendant le nettoyage des durées.',
     loadError:
       'Impossible de charger les statistiques. Vérifie que le backend tourne bien et que la migration de base de données a été relancée (npm run migrate).',
   },

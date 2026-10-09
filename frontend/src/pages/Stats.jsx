@@ -23,8 +23,6 @@ function formatDuration(totalMinutes, t) {
 export default function Stats() {
   const { t, locale } = useI18n();
   const [stats, setStats] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   const load = () => {
@@ -40,34 +38,6 @@ export default function Stats() {
   };
 
   useEffect(load, []);
-
-  const refreshRuntimes = async () => {
-    setRefreshing(true);
-    setMessage('');
-    try {
-      const { data } = await client.post('/shows/refresh-runtimes');
-      setMessage(t('stats.runtimesUpdated', { updated: data.updated, total: data.total }));
-      load();
-    } catch {
-      setMessage(t('stats.runtimesError'));
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const cleanRuntimes = async () => {
-    setRefreshing(true);
-    setMessage('');
-    try {
-      const { data } = await client.post('/shows/clean-runtimes');
-      setMessage(t('stats.cleaned', { episodes: data.episodesFixed, shows: data.showsFixed }));
-      load();
-    } catch {
-      setMessage(t('stats.cleanError'));
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   if (error) {
     return (
@@ -127,42 +97,20 @@ export default function Stats() {
           <p className="mt-12 border-l border-signal/60 pl-4 text-sm text-ink-muted">{t('stats.empty')}</p>
         ) : (
           <>
-            <section className="animate-rise mt-14 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-end" style={{ animationDelay: '100ms' }}>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">{t('stats.totalTime')}</p>
-                <p className="mt-3 font-display text-5xl font-medium leading-none tracking-tight text-signal sm:text-7xl">
-                  {durationLabel}
-                </p>
-                <p className="mt-4 text-ink-muted">{t('stats.hoursTotal', { count: hours })}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 lg:grid-cols-2">
+            {/* En-tête : le temps total, puis quatre chiffres clés sur une seule bande. */}
+            <section className="animate-rise mt-14 border-y border-ink-line py-12" style={{ animationDelay: '100ms' }}>
+              <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">{t('stats.totalTime')}</p>
+              <p className="mt-3 font-display text-5xl font-medium leading-none tracking-tight text-signal sm:text-7xl">
+                {durationLabel}
+              </p>
+              <p className="mt-4 text-ink-muted">{t('stats.hoursTotal', { count: hours })}</p>
+
+              <div className="mt-10 grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:divide-x sm:divide-ink-line">
                 <Stat value={stats.episodesWatched} label={t('stats.episodesWatched')} />
                 <Stat value={stats.moviesWatched} label={t('stats.moviesWatched')} />
                 <Stat value={stats.showsStarted} label={t('stats.showsStarted')} />
                 <Stat value={stats.showsCompleted} label={t('stats.showsCompleted')} />
               </div>
-            </section>
-
-            <section className="animate-rise mt-12 grid grid-cols-2 gap-x-6 gap-y-8 border-y border-ink-line py-8 sm:grid-cols-4" style={{ animationDelay: '160ms' }}>
-              <Stat value={stats.rewatches} label={t('stats.rewatches')} />
-              <Stat
-                value={
-                  stats.averageRating === null ? '—' : <StarsDisplay value={stats.averageRating / 2} locale={locale} />
-                }
-                label={t('stats.averageRating')}
-                caption={stats.averageRating === null ? t('stats.noRating') : undefined}
-              />
-              <Stat value={stats.daysWatched} label={t('stats.daysWatched')} />
-              <Stat
-                value={t('stats.streakDays', { count: stats.longestStreak })}
-                label={t('stats.longestStreak')}
-                caption={
-                  stats.currentStreak > 0
-                    ? t('stats.streakCaption', { count: stats.currentStreak })
-                    : t('stats.streakNone')
-                }
-                small
-              />
             </section>
 
             <section className="animate-rise mt-16" style={{ animationDelay: '220ms' }}>
@@ -274,38 +222,63 @@ export default function Stats() {
                 <SectionTitle title={t('stats.rhythm')} />
                 <BarStrip values={stats.weekdays} labels={weekdayNames} />
                 <div className="mt-8">
-                  <BarStrip
-                    values={stats.hours}
-                    labels={stats.hours.map((_, h) => (h % 6 === 0 ? String(h) : ''))}
-                  />
+                  <BarStrip values={stats.hours} labels={stats.hours.map((_, h) => (h % 6 === 0 ? String(h) : ''))} />
                 </div>
                 <p className="mt-6 text-sm text-ink-muted">
                   {t('stats.rhythmSentence', { weekday: weekdayFull(topWeekday), hour: topHour })}
                 </p>
+
+                <dl className="mt-10 divide-y divide-ink-line border-y border-ink-line">
+                  <HabitRow label={t('stats.rewatches')} value={stats.rewatches} />
+                  <HabitRow
+                    label={t('stats.averageRating')}
+                    value={
+                      stats.averageRating === null ? (
+                        <span className="text-sm text-ink-muted">{t('stats.noRating')}</span>
+                      ) : (
+                        <StarsDisplay value={stats.averageRating / 2} locale={locale} />
+                      )
+                    }
+                  />
+                  <HabitRow label={t('stats.daysWatched')} value={stats.daysWatched} />
+                  <HabitRow
+                    label={t('stats.longestStreak')}
+                    value={t('stats.streakDays', { count: stats.longestStreak })}
+                    caption={
+                      stats.currentStreak > 0
+                        ? t('stats.streakCaption', { count: stats.currentStreak })
+                        : t('stats.streakNone')
+                    }
+                  />
+                </dl>
               </section>
             </div>
           </>
         )}
-
-        <section className="mt-20 border-t border-ink-line pt-8">
-          <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">{t('stats.tools')}</p>
-          <div className="mt-5 grid gap-6 sm:grid-cols-2">
-            <Tool
-              label={refreshing ? t('stats.refreshing') : t('stats.refreshRuntimes')}
-              hint={t('stats.refreshRuntimesHint')}
-              onClick={refreshRuntimes}
-              disabled={refreshing}
-            />
-            <Tool
-              label={refreshing ? t('stats.cleaning') : t('stats.cleanRuntimes')}
-              hint={t('stats.cleanRuntimesHint')}
-              onClick={cleanRuntimes}
-              disabled={refreshing}
-            />
-          </div>
-          {message && <p className="mt-5 text-sm text-ink-muted">{message}</p>}
-        </section>
       </div>
+    </div>
+  );
+}
+
+// Chiffre clé de la bande d'en-tête, centré, comme sur le tableau de bord.
+function Stat({ value, label }) {
+  return (
+    <div className="text-center sm:px-6">
+      <p className="font-display text-4xl font-medium tabular-nums text-paper sm:text-5xl">{value}</p>
+      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-ink-muted">{label}</p>
+    </div>
+  );
+}
+
+// Une ligne de la liste « habitudes » : libellé à gauche, valeur à droite.
+function HabitRow({ label, value, caption }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3">
+      <dt className="text-sm text-ink-muted">{label}</dt>
+      <dd className="text-right font-display text-xl tabular-nums text-paper">
+        {value}
+        {caption && <span className="mt-0.5 block font-ui text-xs text-ink-muted">{caption}</span>}
+      </dd>
     </div>
   );
 }
@@ -315,18 +288,6 @@ function SectionTitle({ title, hint }) {
     <div className="mb-6 flex items-baseline justify-between gap-4 border-b border-ink-line pb-3">
       <h2 className="font-display text-2xl font-medium">{title}</h2>
       {hint && <p className="shrink-0 text-xs text-ink-muted">{hint}</p>}
-    </div>
-  );
-}
-
-function Stat({ value, label, caption, small = false }) {
-  return (
-    <div>
-      <p className={`font-display font-medium tabular-nums text-paper ${small ? 'text-2xl sm:text-3xl' : 'text-4xl sm:text-5xl'}`}>
-        {value}
-      </p>
-      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-ink-muted">{label}</p>
-      {caption && <p className="mt-1 text-xs text-ink-muted/80">{caption}</p>}
     </div>
   );
 }
@@ -365,22 +326,6 @@ function BarStrip({ values, labels }) {
           <span className="text-center text-[10px] uppercase tracking-[0.12em] text-ink-muted">{labels[i]}</span>
         </div>
       ))}
-    </div>
-  );
-}
-
-function Tool({ label, hint, onClick, disabled }) {
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        className="text-sm text-signal underline-offset-4 transition hover:underline disabled:opacity-50"
-      >
-        {label}
-      </button>
-      <p className="mt-1 text-xs text-ink-muted">{hint}</p>
     </div>
   );
 }

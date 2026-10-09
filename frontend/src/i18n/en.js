@@ -136,7 +136,6 @@ export const en = {
   detail: {
     nextEpisode: 'Next episode',
     markSeen: 'Mark as seen',
-    refresh: 'Refresh from TMDB',
     delete: 'Remove',
     confirmDeleteShow: 'Remove this show from your tracking?',
     bulkConfirm: {
@@ -245,18 +244,6 @@ export const en = {
       one: '{count} day',
       other: '{count} days',
     },
-    tools: 'Maintenance tools',
-    cleanRuntimes: 'Clean up outlier runtimes',
-    cleanRuntimesHint: 'Clears episode runtimes already stored that are unrealistic (over 4 h).',
-    refreshRuntimes: 'Fix missing runtimes',
-    refreshRuntimesHint:
-      'TMDB does not always give each episode’s runtime: this fetches each show’s average runtime to refine the calculation.',
-    refreshing: 'Updating…',
-    cleaning: 'Cleaning up…',
-    runtimesUpdated: 'Runtimes updated for {updated}/{total} shows ✅',
-    runtimesError: 'Error while updating runtimes.',
-    cleaned: 'Clean-up done: {episodes} episode(s) and {shows} show(s) fixed ✅',
-    cleanError: 'Error while cleaning runtimes.',
     loadError:
       'Could not load the statistics. Check that the backend is running and that the database migration has been run (npm run migrate).',
   },

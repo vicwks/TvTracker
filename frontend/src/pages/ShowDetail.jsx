@@ -161,13 +161,6 @@ export default function ShowDetail() {
             <div className="mt-6 flex flex-wrap gap-6 text-sm">
               <button
                 type="button"
-                onClick={() => client.post(`/shows/${id}/refresh`).then(load)}
-                className="text-ink-muted underline-offset-4 transition hover:text-signal hover:underline"
-              >
-                {t('detail.refresh')}
-              </button>
-              <button
-                type="button"
                 onClick={deleteShow}
                 className="text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
               >

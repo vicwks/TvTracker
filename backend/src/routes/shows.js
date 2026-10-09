@@ -5,8 +5,6 @@ import { refreshShowCompletion } from '../services/showStatus.js';
 import { getShowDetails, IMAGE_BASE_URL, isNotFoundError } from '../services/tmdb.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import {
-  MAX_PLAUSIBLE_RUNTIME,
-  sanitizeRuntime,
   SHOW_STATUSES,
   toPositiveInt,
   toRating,
@@ -24,51 +22,6 @@ async function syncOrNull(tmdbId, options) {
     throw err;
   }
 }
-
-// Met à jour uniquement la durée moyenne d'épisode (repli) de toutes les séries connues
-router.post('/refresh-runtimes', async (req, res) => {
-  try {
-    const [shows] = await pool.query('SELECT id, tmdb_id FROM shows');
-    let updated = 0;
-    for (const show of shows) {
-      try {
-        const details = await getShowDetails(show.tmdb_id);
-        const episodeRuntime = sanitizeRuntime(
-          Array.isArray(details.episode_run_time) && details.episode_run_time.length > 0
-            ? details.episode_run_time[0]
-            : details.last_episode_to_air?.runtime || details.next_episode_to_air?.runtime || null
-        );
-        await pool.query('UPDATE shows SET episode_runtime = ? WHERE id = ?', [episodeRuntime, show.id]);
-        updated++;
-      } catch (err) {
-        console.error(`Erreur pour la série ${show.id} :`, err.message);
-      }
-      // Petite pause entre deux séries pour rester sous les limites de débit de TMDB
-      await new Promise((r) => setTimeout(r, 150));
-    }
-    res.json({ ok: true, updated, total: shows.length });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors de la mise à jour des durées' });
-  }
-});
-
-// Corrige directement en base les durées d'épisode déjà stockées mais aberrantes
-router.post('/clean-runtimes', async (req, res) => {
-  try {
-    const [result] = await pool.query('UPDATE episodes SET runtime = NULL WHERE runtime > ? OR runtime <= 0', [
-      MAX_PLAUSIBLE_RUNTIME,
-    ]);
-    const [showResult] = await pool.query(
-      'UPDATE shows SET episode_runtime = NULL WHERE episode_runtime > ? OR episode_runtime <= 0',
-      [MAX_PLAUSIBLE_RUNTIME]
-    );
-    res.json({ ok: true, episodesFixed: result.affectedRows, showsFixed: showResult.affectedRows });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors du nettoyage des durées' });
-  }
-});
 
 // Recalcule le statut ("terminé" vs "en cours") de toutes MES séries suivies, en une passe.
 router.post('/recompute-status', async (req, res) => {
@@ -248,23 +201,6 @@ router.patch('/:id/status', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur lors de la mise à jour du statut' });
-  }
-});
-
-// Re-synchronise une série depuis TMDB (données partagées, profite à tous les utilisateurs)
-router.post('/:id/refresh', async (req, res) => {
-  try {
-    const showId = toPositiveInt(req.params.id);
-    if (!showId) return res.status(404).json({ error: 'Série introuvable' });
-
-    const [[show]] = await pool.query('SELECT tmdb_id FROM shows WHERE id = ?', [showId]);
-    if (!show) return res.status(404).json({ error: 'Série introuvable' });
-
-    await syncShowFromTmdb(show.tmdb_id, { force: true });
-    res.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors du rafraîchissement' });
   }
 });
 
