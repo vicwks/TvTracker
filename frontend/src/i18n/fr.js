@@ -302,6 +302,7 @@ export const fr = {
     noPoster: "Pas d'affiche",
     follow: '+ Suivre',
     followed: 'Suivi',
+    unfollow: 'Retirer',
     friendsWatching: '{names} regarde(nt) aussi',
     typeShow: 'Série',
     typeMovie: 'Film',
@@ -317,6 +318,7 @@ export const fr = {
     empty: 'Rien à afficher pour cette sélection.',
     addError: "Erreur lors de l'ajout.",
     openError: "Erreur lors de l'ouverture de la fiche.",
+    removeError: 'Erreur lors du retrait.',
     clearSearch: 'Effacer la recherche',
   },
   pagination: {

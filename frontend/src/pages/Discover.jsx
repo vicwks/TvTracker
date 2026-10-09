@@ -8,6 +8,7 @@ const TYPES = ['shows', 'movies'];
 
 // Découvrir : tendances, genres et recherche sur une même page. Une recherche remplace la liste des
 // tendances (les genres ne s'y appliquent pas) ; vider le champ revient aux tendances.
+// Chaque résultat indique s'il est déjà suivi (tracked_id) : on peut le suivre ou le retirer d'ici.
 export default function Discover() {
   const navigate = useNavigate();
   const { t } = useI18n();
@@ -19,7 +20,6 @@ export default function Discover() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
-  const [addedIds, setAddedIds] = useState(new Set());
   const [opening, setOpening] = useState(null);
 
   useEffect(() => {
@@ -42,7 +42,6 @@ export default function Discover() {
       .then((res) => {
         if (!current) return;
         setItems(res.data);
-        setAddedIds(new Set());
       })
       .catch(() => {
         if (current && search) setMessage(t('search.error'));
@@ -72,16 +71,30 @@ export default function Discover() {
     setSearch('');
   };
 
+  // Met à jour l'état « suivi » d'un titre affiché, sans recharger la liste.
+  const setTracked = (tmdbId, trackedId) => {
+    setItems((prev) => prev.map((i) => (i.tmdb_id === tmdbId ? { ...i, tracked_id: trackedId } : i)));
+  };
+
   const addToTracking = async (item) => {
     try {
-      if (type === 'shows') {
-        await client.post('/shows', { tmdb_id: item.tmdb_id, status: 'to_watch' });
-      } else {
-        await client.post('/movies', { tmdb_id: item.tmdb_id });
-      }
-      setAddedIds((prev) => new Set(prev).add(item.tmdb_id));
+      const { data } =
+        type === 'shows'
+          ? await client.post('/shows', { tmdb_id: item.tmdb_id, status: 'to_watch' })
+          : await client.post('/movies', { tmdb_id: item.tmdb_id });
+      setTracked(item.tmdb_id, data.id);
     } catch {
       setMessage(t('discover.addError'));
+    }
+  };
+
+  // Retrait immédiat (pas de confirmation) : un suivi fait par erreur doit pouvoir être annulé d'un clic.
+  const removeFromTracking = async (item) => {
+    try {
+      await client.delete(`${type === 'shows' ? '/shows' : '/movies'}/${item.tracked_id}`);
+      setTracked(item.tmdb_id, null);
+    } catch {
+      setMessage(t('discover.removeError'));
     }
   };
 
@@ -210,10 +223,17 @@ export default function Discover() {
                   footer={
                     opening === item.tmdb_id ? (
                       <p className="text-sm text-ink-muted">{t('discover.opening')}</p>
-                    ) : addedIds.has(item.tmdb_id) ? (
-                      <p className="w-full rounded-md border border-signal/60 py-2 text-center text-sm text-signal">
-                        ✓ {t('card.followed')}
-                      </p>
+                    ) : item.tracked_id ? (
+                      <div className="flex w-full items-center justify-between gap-2 rounded-md border border-signal/60 px-3 py-2 text-sm">
+                        <span className="text-signal">✓ {t('card.followed')}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromTracking(item)}
+                          className="text-xs text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
+                        >
+                          {t('card.unfollow')}
+                        </button>
+                      </div>
                     ) : (
                       <button
                         type="button"

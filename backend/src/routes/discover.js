@@ -3,6 +3,7 @@ import pool from '../db/connection.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cached } from '../services/cache.js';
 import { toPositiveInt } from '../utils/validation.js';
+import { getTrackedMap } from '../services/tracking.js';
 import {
   getTrendingShows,
   getTrendingMovies,
@@ -80,7 +81,8 @@ async function attachFriends(req, items, type) {
     items.map((i) => i.tmdb_id),
     type
   );
-  return items.map((i) => ({ ...i, friendsWatching: map[i.tmdb_id] || [] }));
+  const tracked = await getTrackedMap(req.userId, items.map((i) => i.tmdb_id), type);
+  return items.map((i) => ({ ...i, friendsWatching: map[i.tmdb_id] || [], tracked_id: tracked[i.tmdb_id] ?? null }));
 }
 
 // Numéro de page TMDB : entier entre 1 et 500 (la limite de l'API), 1 par défaut.

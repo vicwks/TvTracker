@@ -302,6 +302,7 @@ export const en = {
     noPoster: 'No poster',
     follow: '+ Follow',
     followed: 'Following',
+    unfollow: 'Remove',
     friendsWatching: '{names} also watching',
     typeShow: 'Show',
     typeMovie: 'Movie',
@@ -317,6 +318,7 @@ export const en = {
     empty: 'Nothing to show for this selection.',
     addError: 'Could not add it.',
     openError: 'Could not open the page.',
+    removeError: 'Could not remove it.',
     clearSearch: 'Clear search',
   },
   pagination: {
