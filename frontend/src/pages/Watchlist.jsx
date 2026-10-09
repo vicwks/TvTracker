@@ -252,7 +252,7 @@ function ShowEntry({ show, delay, onStatusChange }) {
   return (
     <PosterCard
       title={show.title}
-      year={t('card.typeShow')}
+      year={show.release_year ? String(show.release_year) : ''}
       posterUrl={show.poster_url}
       to={`/show/${show.id}`}
       delay={delay}

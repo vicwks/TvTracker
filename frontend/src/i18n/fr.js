@@ -310,8 +310,6 @@ export const fr = {
     followed: 'Suivi',
     unfollow: 'Retirer',
     friendsWatching: '{names} regarde(nt) aussi',
-    typeShow: 'Série',
-    typeMovie: 'Film',
   },
   discover: {
     kicker: 'Découvrir',
