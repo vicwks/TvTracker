@@ -6,8 +6,6 @@ const FOOTER_LINKS = [
   { to: '/', key: 'dashboard' },
   { to: '/discover', key: 'discover' },
   { to: '/search', key: 'search' },
-  { to: '/shows', key: 'shows' },
-  { to: '/movies', key: 'movies' },
   { to: '/watchlist', key: 'watchlist' },
   { to: '/calendar', key: 'calendar' },
   { to: '/stats', key: 'stats' },

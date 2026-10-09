@@ -203,7 +203,7 @@ export default function Dashboard() {
         <section>
           <SectionHeader
             title={t('dashboard.watching')}
-            to="/shows"
+            to="/watchlist"
             linkLabel={t('dashboard.allShows')}
           />
 

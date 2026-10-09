@@ -95,7 +95,7 @@ export default function ShowDetail() {
   const deleteShow = async () => {
     if (!confirm(t('detail.confirmDeleteShow'))) return;
     await client.delete(`/shows/${id}`);
-    navigate('/shows');
+    navigate('/watchlist');
   };
 
   const status = show.tracking_status || 'to_watch';

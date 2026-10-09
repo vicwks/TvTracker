@@ -46,7 +46,7 @@ export default function MovieDetail() {
   const remove = async () => {
     if (!confirm(t('detail.confirmRemoveMovie'))) return;
     await client.delete(`/movies/${id}`);
-    navigate('/movies');
+    navigate('/watchlist');
   };
 
   const meta = [
