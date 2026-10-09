@@ -327,8 +327,8 @@ export const fr = {
   },
   pagination: {
     label: 'Pagination',
-    previous: '← Précédent',
-    next: 'Suivant →',
+    previous: 'Page précédente',
+    next: 'Page suivante',
     page: 'Page {page}',
   },
   legal: {
