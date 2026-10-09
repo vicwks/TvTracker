@@ -1,8 +1,8 @@
 import { useI18n } from '../i18n/LanguageContext.jsx';
 
-// Jusqu'à neuf pages : toutes sont numérotées. Au-delà, les neuf premières pages sont numérotées tant qu'on
-// est sur l'une d'elles ; à partir de la dixième, la page courante et ses deux voisines s'affichent, entre
-// la première et la dernière page, avec « … » pour les pages masquées.
+// Neuf pages numérotées à la fois. Au début, ce sont les pages 1 à 9 ; ensuite la fenêtre glisse avec la page
+// courante, pour que la page suivante soit toujours visible (page 9 : 2 à 10, page 10 : 3 à 11, etc.).
+// La dernière page reste affichée, avec « … » entre les deux quand des pages sont masquées.
 const NUMBERED = 9;
 
 function range(from, to) {
@@ -12,21 +12,11 @@ function range(from, to) {
 }
 
 function pageItems(page, pageCount) {
-  if (pageCount <= NUMBERED + 1) {
-    return range(1, pageCount).map((p) => ({ page: p }));
-  }
-
-  if (page <= NUMBERED) {
-    return [...range(1, NUMBERED).map((p) => ({ page: p })), { gap: true }, { page: pageCount }];
-  }
-
-  const from = Math.max(2, page - 2);
-  const to = Math.min(pageCount - 1, page + 2);
-  const items = [{ page: 1 }];
-  if (from > 2) items.push({ gap: true });
-  items.push(...range(from, to).map((p) => ({ page: p })));
-  if (to < pageCount - 1) items.push({ gap: true });
-  items.push({ page: pageCount });
+  const end = Math.min(pageCount, Math.max(NUMBERED, page + 1));
+  const start = Math.max(1, end - NUMBERED + 1);
+  const items = range(start, end).map((p) => ({ page: p }));
+  if (end < pageCount - 1) items.push({ gap: true });
+  if (end < pageCount) items.push({ page: pageCount });
   return items;
 }
 
