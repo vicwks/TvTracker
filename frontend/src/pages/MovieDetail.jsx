@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import client from '../api/client.js';
 import { useI18n } from '../i18n/LanguageContext.jsx';
 import RatingStars from '../components/RatingStars.jsx';
+import Dialog from '../components/Dialog.jsx';
 
 // Fiche d'un film : même mise en page qu'avant, dans le style du site.
 export default function MovieDetail() {
@@ -11,6 +12,7 @@ export default function MovieDetail() {
   const { t } = useI18n();
   const [movie, setMovie] = useState(null);
   const [note, setNote] = useState('');
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   const load = () => {
     client.get(`/movies/${id}`).then((res) => {
@@ -44,7 +46,7 @@ export default function MovieDetail() {
   };
 
   const remove = async () => {
-    if (!confirm(t('detail.confirmRemoveMovie'))) return;
+    setConfirmRemove(false);
     await client.delete(`/movies/${id}`);
     navigate('/watchlist');
   };
@@ -100,7 +102,7 @@ export default function MovieDetail() {
               {/* Suppression à droite, sur la même ligne que le bouton « vu » et la note. */}
               <button
                 type="button"
-                onClick={remove}
+                onClick={() => setConfirmRemove(true)}
                 className="ml-auto text-sm text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
               >
                 {t('detail.delete')}
@@ -108,6 +110,19 @@ export default function MovieDetail() {
             </div>
           </div>
         </div>
+
+        {confirmRemove && (
+          <Dialog
+            title={t('dialog.deleteMovieTitle')}
+            onClose={() => setConfirmRemove(false)}
+            actions={[
+              { label: t('common.cancel'), onClick: () => setConfirmRemove(false), primary: true },
+              { label: t('detail.delete'), onClick: remove, danger: true },
+            ]}
+          >
+            {t('detail.confirmRemoveMovie')}
+          </Dialog>
+        )}
 
         <section className="mt-16 max-w-3xl">
           <label htmlFor="movie-note" className="block font-display text-2xl font-medium">

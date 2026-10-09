@@ -18,6 +18,8 @@ export default function ShowDetail() {
   const [openSeason, setOpenSeason] = useState(null);
   // Épisode coché alors que des épisodes précédents de la saison ne sont pas vus : demande à confirmer.
   const [bulk, setBulk] = useState(null);
+  // Suppression de la série : demande confirmation dans une fenêtre.
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const load = () => {
     client.get(`/shows/${id}`).then((res) => {
@@ -107,7 +109,7 @@ export default function ShowDetail() {
   };
 
   const deleteShow = async () => {
-    if (!confirm(t('detail.confirmDeleteShow'))) return;
+    setConfirmDelete(false);
     await client.delete(`/shows/${id}`);
     navigate('/watchlist');
   };
@@ -156,7 +158,7 @@ export default function ShowDetail() {
               </div>
               <button
                 type="button"
-                onClick={deleteShow}
+                onClick={() => setConfirmDelete(true)}
                 className="shrink-0 text-sm text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
               >
                 {t('detail.delete')}
@@ -195,6 +197,19 @@ export default function ShowDetail() {
             ]}
           >
             {t('detail.bulkConfirm', { count: bulk.count, season: bulk.season.name })}
+          </Dialog>
+        )}
+
+        {confirmDelete && (
+          <Dialog
+            title={t('dialog.deleteShowTitle')}
+            onClose={() => setConfirmDelete(false)}
+            actions={[
+              { label: t('common.cancel'), onClick: () => setConfirmDelete(false), primary: true },
+              { label: t('detail.delete'), onClick: deleteShow, danger: true },
+            ]}
+          >
+            {t('detail.confirmDeleteShow')}
           </Dialog>
         )}
 

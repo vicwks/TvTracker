@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 
 // Fenêtre modale dans le style du site. Échap ou un clic sur le fond la ferme sans rien valider.
-// `actions` : liste de { label, onClick, primary }. Le bouton principal reçoit le focus à l'ouverture.
+// `actions` : liste de { label, onClick, primary, danger }. Le bouton principal reçoit le focus à l'ouverture ;
+// `danger` marque une action destructive (suppression), en rouge. Pour une suppression, on met « Annuler »
+// en principal pour que la touche Entrée ne supprime rien par erreur.
 export default function Dialog({ title, children, actions, onClose }) {
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -33,18 +35,33 @@ export default function Dialog({ title, children, actions, onClose }) {
         </h2>
         <div className="mt-3 text-sm leading-relaxed text-ink-muted">{children}</div>
         <div className="mt-7 flex flex-wrap justify-end gap-3">
-          {actions.map((action) =>
-            action.primary ? (
-              <button
-                key={action.label}
-                type="button"
-                autoFocus
-                onClick={action.onClick}
-                className="rounded-md bg-signal px-4 py-2 text-sm font-medium text-signal-ink transition hover:-translate-y-0.5 active:scale-[0.98]"
-              >
-                {action.label}
-              </button>
-            ) : (
+          {actions.map((action) => {
+            if (action.primary) {
+              return (
+                <button
+                  key={action.label}
+                  type="button"
+                  autoFocus
+                  onClick={action.onClick}
+                  className="rounded-md bg-signal px-4 py-2 text-sm font-medium text-signal-ink transition hover:-translate-y-0.5 active:scale-[0.98]"
+                >
+                  {action.label}
+                </button>
+              );
+            }
+            if (action.danger) {
+              return (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={action.onClick}
+                  className="rounded-md border border-danger/60 px-4 py-2 text-sm font-medium text-danger transition hover:bg-danger/10 active:scale-[0.98]"
+                >
+                  {action.label}
+                </button>
+              );
+            }
+            return (
               <button
                 key={action.label}
                 type="button"
@@ -53,8 +70,8 @@ export default function Dialog({ title, children, actions, onClose }) {
               >
                 {action.label}
               </button>
-            )
-          )}
+            );
+          })}
         </div>
       </div>
     </div>

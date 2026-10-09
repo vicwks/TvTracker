@@ -6,6 +6,7 @@ import ProgressBar from '../components/ProgressBar.jsx';
 import RatingStars from '../components/RatingStars.jsx';
 import StatusMenu from '../components/StatusMenu.jsx';
 import Pagination from '../components/Pagination.jsx';
+import Dialog from '../components/Dialog.jsx';
 
 // Nombre de titres par page (trois rangées de cinq sur grand écran).
 const PER_PAGE = 15;
@@ -22,6 +23,8 @@ export default function Watchlist() {
   const [shows, setShows] = useState([]);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Film à retirer : demande confirmation dans une fenêtre.
+  const [removing, setRemoving] = useState(null);
 
   const load = () => {
     Promise.all([client.get('/shows'), client.get('/movies')])
@@ -49,8 +52,9 @@ export default function Watchlist() {
     load();
   };
 
-  const removeMovie = async (id) => {
-    if (!confirm(t('watchlist.confirmRemoveMovie'))) return;
+  const removeMovie = async () => {
+    const { id } = removing;
+    setRemoving(null);
     await client.delete(`/movies/${id}`);
     load();
   };
@@ -216,13 +220,26 @@ export default function Watchlist() {
                     delay={Math.min(i, 12) * 50}
                     onWatchedChange={toggleMovieWatched}
                     onRate={rateMovie}
-                    onRemove={removeMovie}
+                    onRemove={setRemoving}
                   />
                 )
               )}
             </div>
           )}
         </div>
+
+        {removing && (
+          <Dialog
+            title={t('dialog.removeMovieTitle')}
+            onClose={() => setRemoving(null)}
+            actions={[
+              { label: t('common.cancel'), onClick: () => setRemoving(null), primary: true },
+              { label: t('watchlist.remove'), onClick: removeMovie, danger: true },
+            ]}
+          >
+            {t('watchlist.confirmRemoveMovie')}
+          </Dialog>
+        )}
 
         <Pagination page={currentPage} pageCount={pageCount} onChange={setPage} />
       </div>
@@ -279,7 +296,7 @@ function MovieEntry({ movie, delay, onWatchedChange, onRate, onRemove }) {
           <RatingStars value={movie.rating} onChange={(val) => onRate(movie.id, val)} />
           <button
             type="button"
-            onClick={() => onRemove(movie.id)}
+            onClick={() => onRemove(movie)}
             className="text-xs text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
           >
             {t('watchlist.remove')}

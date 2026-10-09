@@ -4,10 +4,16 @@
 export const fr = {
   common: {
     brand: 'TV Tracker',
+    cancel: 'Annuler',
     loading: 'Chargement…',
     oops: 'Oups.',
     retry: 'Réessayer',
     unreachable: "Impossible de joindre le serveur. Vérifie que l'application est bien lancée.",
+  },
+  dialog: {
+    deleteShowTitle: 'Supprimer la série ?',
+    deleteMovieTitle: 'Supprimer le film ?',
+    removeMovieTitle: 'Retirer le film ?',
   },
   language: {
     label: 'Langue',
@@ -136,7 +142,7 @@ export const fr = {
     nextEpisode: 'Prochain épisode',
     markSeen: 'Marquer vu',
     delete: 'Supprimer',
-    confirmDeleteShow: 'Supprimer cette série de ton suivi ?',
+    confirmDeleteShow: 'undefined',
     bulkConfirm: {
       one: 'Marquer aussi l’épisode précédent de « {season} » comme vu ?',
       other: 'Marquer aussi les {count} épisodes précédents de « {season} » comme vus ?',
@@ -152,7 +158,7 @@ export const fr = {
     minutes: '{count} min',
     movieWatched: '✓ Vu',
     markWatched: 'Marquer comme vu',
-    confirmRemoveMovie: 'Retirer ce film de ton suivi ?',
+    confirmRemoveMovie: 'undefined',
     notes: 'Notes personnelles',
     notesPlaceholder: 'Tes impressions sur ce film…',
   },
@@ -288,7 +294,7 @@ export const fr = {
     markWatched: 'Marquer comme vu',
     unmarkWatched: 'Marquer comme non vu',
     remove: 'Retirer',
-    confirmRemoveMovie: 'Retirer ce film de ton suivi ?',
+    confirmRemoveMovie: 'undefined',
   },
   search: {
     placeholder: 'Rechercher un titre…',
