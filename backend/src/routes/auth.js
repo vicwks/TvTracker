@@ -94,7 +94,7 @@ router.post('/register', authLimiter, async (req, res) => {
     }
 
     res.cookie('token', signToken(userId), COOKIE_OPTIONS);
-    res.status(201).json({ id: userId, username, display_name: username });
+    res.status(201).json({ id: userId, username, display_name: username, email: cleanEmail });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur lors de l'inscription" });
@@ -111,7 +111,7 @@ router.post('/login', authLimiter, async (req, res) => {
     }
 
     const [[user]] = await pool.query(
-      'SELECT id, username, display_name, password_hash FROM users WHERE username = ?',
+      'SELECT id, username, display_name, email, password_hash FROM users WHERE username = ?',
       [username]
     );
     // Vérification dans tous les cas, pour que le temps de réponse ne révèle pas si le pseudo existe.
@@ -119,7 +119,7 @@ router.post('/login', authLimiter, async (req, res) => {
     if (!user || !valid) return invalid();
 
     res.cookie('token', signToken(user.id), COOKIE_OPTIONS);
-    res.json({ id: user.id, username: user.username, display_name: user.display_name });
+    res.json({ id: user.id, username: user.username, display_name: user.display_name, email: user.email });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur lors de la connexion' });
@@ -134,7 +134,7 @@ router.post('/logout', (req, res) => {
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const [[user]] = await pool.query(
-      'SELECT id, username, display_name, avatar_url FROM users WHERE id = ?',
+      'SELECT id, username, display_name, email, avatar_url FROM users WHERE id = ?',
       [req.userId]
     );
     if (!user) return res.status(401).json({ error: 'Non connecté' });
