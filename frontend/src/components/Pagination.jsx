@@ -1,17 +1,32 @@
 import { useI18n } from '../i18n/LanguageContext.jsx';
 
-// Neuf pages numérotées affichées et cliquables, puis « … » et la dernière page. Jusqu'à dix pages au total,
-// toutes sont numérotées (un « … » qui ne masquerait aucune page n'aurait pas de sens).
+// Jusqu'à neuf pages : toutes sont numérotées. Au-delà, les neuf premières pages sont numérotées tant qu'on
+// est sur l'une d'elles ; à partir de la dixième, la page courante et ses deux voisines s'affichent, entre
+// la première et la dernière page, avec « … » pour les pages masquées.
 const NUMBERED = 9;
 
-function pageItems(pageCount) {
-  const shown = pageCount <= NUMBERED + 1 ? pageCount : NUMBERED;
-  const items = [];
-  for (let p = 1; p <= shown; p += 1) {
-    items.push({ page: p, key: `page-${p}` });
+function range(from, to) {
+  const pages = [];
+  for (let p = from; p <= to; p += 1) pages.push(p);
+  return pages;
+}
+
+function pageItems(page, pageCount) {
+  if (pageCount <= NUMBERED + 1) {
+    return range(1, pageCount).map((p) => ({ page: p }));
   }
-  if (shown < pageCount - 1) items.push({ gap: true, key: 'gap' });
-  if (shown < pageCount) items.push({ page: pageCount, key: `page-${pageCount}` });
+
+  if (page <= NUMBERED) {
+    return [...range(1, NUMBERED).map((p) => ({ page: p })), { gap: true }, { page: pageCount }];
+  }
+
+  const from = Math.max(2, page - 2);
+  const to = Math.min(pageCount - 1, page + 2);
+  const items = [{ page: 1 }];
+  if (from > 2) items.push({ gap: true });
+  items.push(...range(from, to).map((p) => ({ page: p })));
+  if (to < pageCount - 1) items.push({ gap: true });
+  items.push({ page: pageCount });
   return items;
 }
 
@@ -33,13 +48,13 @@ export default function Pagination({ page, pageCount, onChange }) {
       </button>
 
       <ul className="flex flex-wrap items-center justify-center gap-1">
-        {pageItems(pageCount).map((item) =>
+        {pageItems(page, pageCount).map((item, i) =>
           item.gap ? (
-            <li key={item.key} aria-hidden="true" className="w-6 text-center text-ink-muted">
+            <li key={`gap-${i}`} aria-hidden="true" className="w-6 text-center text-ink-muted">
               …
             </li>
           ) : (
-            <li key={item.key}>
+            <li key={`page-${item.page}`}>
               <button
                 type="button"
                 onClick={() => onChange(item.page)}
