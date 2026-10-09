@@ -13,7 +13,6 @@ const linkClass = ({ isActive }) =>
 const NAV_ITEMS = [
   { to: '/', key: 'dashboard', end: true },
   { to: '/discover', key: 'discover' },
-  { to: '/search', key: 'search' },
   { to: '/watchlist', key: 'watchlist' },
   { to: '/calendar', key: 'calendar' },
   { to: '/stats', key: 'stats' },

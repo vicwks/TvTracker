@@ -5,7 +5,6 @@ import { useI18n } from '../i18n/LanguageContext.jsx';
 const FOOTER_LINKS = [
   { to: '/', key: 'dashboard' },
   { to: '/discover', key: 'discover' },
-  { to: '/search', key: 'search' },
   { to: '/watchlist', key: 'watchlist' },
   { to: '/calendar', key: 'calendar' },
   { to: '/stats', key: 'stats' },

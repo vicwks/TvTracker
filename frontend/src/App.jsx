@@ -8,7 +8,6 @@ import Register from './pages/Register.jsx';
 import { Cgu, MentionsLegales } from './pages/Legal.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Discover from './pages/Discover.jsx';
-import Search from './pages/Search.jsx';
 import ShowDetail from './pages/ShowDetail.jsx';
 import MovieDetail from './pages/MovieDetail.jsx';
 import Watchlist from './pages/Watchlist.jsx';
@@ -36,7 +35,7 @@ export default function App() {
 
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
-          <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+          <Route path="/search" element={<Navigate to="/discover" replace />} />
           <Route path="/show/:id" element={<ProtectedRoute><ShowDetail /></ProtectedRoute>} />
           <Route path="/shows" element={<Navigate to="/watchlist" replace />} />
           <Route path="/movies" element={<Navigate to="/watchlist" replace />} />

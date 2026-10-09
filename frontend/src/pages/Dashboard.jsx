@@ -210,7 +210,7 @@ export default function Dashboard() {
           {watching.length === 0 ? (
             <Empty>
               {t('dashboard.noWatching')}{' '}
-              <Link to="/search" className="text-signal underline-offset-4 hover:underline">
+              <Link to="/discover" className="text-signal underline-offset-4 hover:underline">
                 {t('dashboard.findShow')}
               </Link>
               .

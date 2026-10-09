@@ -6,12 +6,15 @@ import PosterCard from '../components/PosterCard.jsx';
 
 const TYPES = ['shows', 'movies'];
 
-// Découvrir : même identité que le tableau de bord (titre en Fraunces, onglets soulignés, affiches sobres).
+// Découvrir : tendances, genres et recherche sur une même page. Une recherche remplace la liste des
+// tendances (les genres ne s'y appliquent pas) ; vider le champ revient aux tendances.
 export default function Discover() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [type, setType] = useState('shows'); // "shows" | "movies"
   const [mode, setMode] = useState('trending'); // "trending" | id de genre
+  const [query, setQuery] = useState(''); // ce qui est tapé dans le champ
+  const [search, setSearch] = useState(''); // dernière recherche validée ; vide = pas de recherche
   const [genres, setGenres] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,16 +28,49 @@ export default function Discover() {
   }, [type]);
 
   useEffect(() => {
+    // Ignore une réponse arrivée après un changement de type, de genre ou de recherche.
+    let current = true;
     setLoading(true);
-    const url = mode === 'trending' ? `/discover/trending/${type}` : `/discover/by-genre/${type}/${mode}`;
-    client
-      .get(url)
+    let request;
+    if (search) {
+      request = client.get(`/search/${type}`, { params: { q: search } });
+    } else {
+      const url = mode === 'trending' ? `/discover/trending/${type}` : `/discover/by-genre/${type}/${mode}`;
+      request = client.get(url);
+    }
+    request
       .then((res) => {
+        if (!current) return;
         setItems(res.data);
         setAddedIds(new Set());
       })
-      .finally(() => setLoading(false));
-  }, [type, mode]);
+      .catch(() => {
+        if (current && search) setMessage(t('search.error'));
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, mode, search]);
+
+  const submitSearch = (e) => {
+    e.preventDefault();
+    setMessage('');
+    setSearch(query.trim());
+  };
+
+  const changeQuery = (value) => {
+    setQuery(value);
+    if (!value.trim()) setSearch('');
+  };
+
+  const clearSearch = () => {
+    setQuery('');
+    setSearch('');
+  };
 
   const addToTracking = async (item) => {
     try {
@@ -49,6 +85,7 @@ export default function Discover() {
     }
   };
 
+  // Ouvre la fiche de la série/film cliqué, même s'il n'est pas encore suivi.
   const openDetail = async (item) => {
     setOpening(item.tmdb_id);
     try {
@@ -61,6 +98,8 @@ export default function Discover() {
     }
   };
 
+  const searching = search !== '';
+
   return (
     <div className="min-h-[70dvh] bg-ink font-ui text-paper">
       <div className="mx-auto max-w-6xl px-6 pb-20 pt-14 sm:px-8 sm:pt-20">
@@ -72,7 +111,29 @@ export default function Discover() {
           <p className="mt-4 max-w-md text-ink-muted">{t('discover.subtitle')}</p>
         </header>
 
-        <div role="tablist" className="animate-rise mt-10 flex gap-8 border-b border-ink-line" style={{ animationDelay: '120ms' }}>
+        <form onSubmit={submitSearch} className="animate-rise mt-10 max-w-2xl" style={{ animationDelay: '100ms' }}>
+          <div className="flex items-center gap-4 border-b border-ink-line transition-colors focus-within:border-signal">
+            <label htmlFor="discover-search" className="sr-only">
+              {t('search.placeholder')}
+            </label>
+            <input
+              id="discover-search"
+              type="text"
+              value={query}
+              onChange={(e) => changeQuery(e.target.value)}
+              placeholder={t('search.placeholder')}
+              className="min-w-0 flex-1 bg-transparent py-2.5 text-base text-paper placeholder:text-ink-muted/60 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="shrink-0 rounded-md bg-signal px-4 py-1.5 text-sm font-medium text-signal-ink transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-12px_rgba(245,165,36,0.7)] active:scale-[0.98]"
+            >
+              {t('search.submit')}
+            </button>
+          </div>
+        </form>
+
+        <div role="tablist" className="animate-rise mt-10 flex gap-8 border-b border-ink-line" style={{ animationDelay: '180ms' }}>
           {TYPES.map((kind) => (
             <button
               key={kind}
@@ -95,16 +156,29 @@ export default function Discover() {
           ))}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Chip active={mode === 'trending'} onClick={() => setMode('trending')}>
-            {t('discover.trending')}
-          </Chip>
-          {genres.map((g) => (
-            <Chip key={g.id} active={mode === g.id} onClick={() => setMode(g.id)}>
-              {g.name}
+        {searching ? (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 text-sm">
+            <p className="text-ink-muted">{items.length > 0 ? t('search.hint') : ''}</p>
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="shrink-0 text-signal underline-offset-4 hover:underline"
+            >
+              {t('discover.clearSearch')}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Chip active={mode === 'trending'} onClick={() => setMode('trending')}>
+              {t('discover.trending')}
             </Chip>
-          ))}
-        </div>
+            {genres.map((g) => (
+              <Chip key={g.id} active={mode === g.id} onClick={() => setMode(g.id)}>
+                {g.name}
+              </Chip>
+            ))}
+          </div>
+        )}
 
         {message && (
           <p role="alert" className="mt-8 text-sm text-danger">
@@ -114,9 +188,13 @@ export default function Discover() {
 
         <div className="mt-10">
           {loading ? (
-            <p className="animate-pulse text-sm text-ink-muted">{t('common.loading')}</p>
+            <p className="animate-pulse text-sm text-ink-muted">
+              {searching ? t('search.searching') : t('common.loading')}
+            </p>
           ) : items.length === 0 ? (
-            <p className="border-l border-signal/60 pl-4 text-sm text-ink-muted">{t('discover.empty')}</p>
+            <p className="border-l border-signal/60 pl-4 text-sm text-ink-muted">
+              {searching ? t('search.noResult', { query: search }) : t('discover.empty')}
+            </p>
           ) : (
             <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {items.map((item, i) => (
