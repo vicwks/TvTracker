@@ -270,20 +270,25 @@ export const en = {
   watchlist: {
     kicker: 'Your library',
     title: 'Watchlist',
-    subtitle: 'Your shows, your movies and what you want to watch later, in one place.',
+    subtitle: 'Every show and movie you follow, in one place.',
     searchPlaceholder: 'Search my watchlist…',
-    tabs: {
-      all: 'All',
+    types: {
       shows: 'Shows',
       movies: 'Movies',
-      later: 'To watch later',
     },
-    empty: 'Your watchlist is empty. Add shows and movies from the Search page.',
+    all: {
+      shows: 'All',
+      movies: 'All',
+    },
+    movieFilters: {
+      to_watch: 'To watch',
+      watched: 'Watched',
+    },
+    empty: 'Nothing here yet. Add shows and movies from Discover or Search.',
     noMatch: 'No title matches “{query}”.',
-    start: 'Start tracking',
-    remove: 'Remove',
     markWatched: 'Mark as watched',
     unmarkWatched: 'Mark as not watched',
+    remove: 'Remove',
     confirmRemoveMovie: 'Remove this movie from your tracking?',
   },
   search: {

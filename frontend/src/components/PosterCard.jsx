@@ -49,8 +49,9 @@ export default function PosterCard({
 
   const info = (
     <>
-      <h3 className="mt-3 line-clamp-2 font-display text-lg leading-snug text-paper">{title}</h3>
-      {year && <p className="mt-1 text-xs tabular-nums text-ink-muted">{year}</p>}
+      {/* Hauteurs fixes (deux lignes de titre, une ligne de méta) : les cartes d'une même rangée restent alignées. */}
+      <h3 className="mt-3 line-clamp-2 min-h-[3.25rem] font-display text-lg leading-snug text-paper">{title}</h3>
+      <p className="mt-1 min-h-[1rem] text-xs tabular-nums text-ink-muted">{year || ' '}</p>
     </>
   );
 
@@ -74,7 +75,7 @@ export default function PosterCard({
           {info}
         </div>
       )}
-      {footer && <div className="mt-2">{footer}</div>}
+      {footer && <div className="mt-auto flex min-h-[2.75rem] flex-col justify-end pt-2">{footer}</div>}
       {cornerBadge && <div className="absolute right-3 top-3">{cornerBadge}</div>}
     </article>
   );

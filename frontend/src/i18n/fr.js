@@ -270,20 +270,25 @@ export const fr = {
   watchlist: {
     kicker: 'Ta bibliothèque',
     title: 'Watchlist',
-    subtitle: 'Tes séries, tes films et ce que tu veux regarder plus tard, au même endroit.',
+    subtitle: 'Toutes les séries et tous les films que tu suis, en un seul endroit.',
     searchPlaceholder: 'Rechercher dans ma watchlist…',
-    tabs: {
-      all: 'Toutes',
+    types: {
       shows: 'Séries',
       movies: 'Films',
-      later: 'À voir plus tard',
     },
-    empty: 'Ta watchlist est vide. Ajoute des séries et des films depuis la page « Rechercher ».',
+    all: {
+      shows: 'Toutes',
+      movies: 'Tous',
+    },
+    movieFilters: {
+      to_watch: 'À voir',
+      watched: 'Vus',
+    },
+    empty: 'Rien ici pour l’instant. Ajoute des séries et des films depuis la page « Découvrir » ou « Rechercher ».',
     noMatch: 'Aucun titre ne correspond à « {query} ».',
-    start: 'Commencer le suivi',
-    remove: 'Retirer',
     markWatched: 'Marquer comme vu',
     unmarkWatched: 'Marquer comme non vu',
+    remove: 'Retirer',
     confirmRemoveMovie: 'Retirer ce film de ton suivi ?',
   },
   search: {

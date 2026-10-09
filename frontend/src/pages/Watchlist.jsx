@@ -9,26 +9,25 @@ import Pagination from '../components/Pagination.jsx';
 
 // Nombre de titres par page (trois rangées de cinq sur grand écran).
 const PER_PAGE = 15;
-const TABS = ['all', 'shows', 'movies', 'later'];
+const SHOW_FILTERS = ['all', 'to_watch', 'watching', 'paused', 'completed', 'dropped'];
+const MOVIE_FILTERS = ['all', 'to_watch', 'watched'];
 
-// Watchlist : la bibliothèque complète. Séries suivies, films suivis et « à voir plus tard » sont dans
-// une seule liste triée par titre. Les cartes d'une série ou d'un film ouvrent leur fiche.
+// Watchlist : tout ce que l'on suit. Deux onglets, Séries et Films, avec leurs propres filtres de statut.
 export default function Watchlist() {
   const { t, locale } = useI18n();
-  const [shows, setShows] = useState([]);
-  const [movies, setMovies] = useState([]);
-  const [later, setLater] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('all');
+  const [type, setType] = useState('shows'); // "shows" | "movies"
+  const [filter, setFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [shows, setShows] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const load = () => {
-    Promise.all([client.get('/shows'), client.get('/movies'), client.get('/watchlist')])
-      .then(([showsRes, moviesRes, laterRes]) => {
+    Promise.all([client.get('/shows'), client.get('/movies')])
+      .then(([showsRes, moviesRes]) => {
         setShows(showsRes.data);
         setMovies(moviesRes.data);
-        setLater(laterRes.data);
       })
       .finally(() => setLoading(false));
   };
@@ -56,21 +55,6 @@ export default function Watchlist() {
     load();
   };
 
-  const removeLater = async (id) => {
-    await client.delete(`/watchlist/${id}`);
-    load();
-  };
-
-  const startTracking = async (item) => {
-    if (item.target_type === 'show') {
-      await client.post('/shows', { tmdb_id: item.target_id, status: 'to_watch' });
-    } else {
-      await client.post('/movies', { tmdb_id: item.target_id });
-    }
-    await client.delete(`/watchlist/${item.id}`);
-    load();
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-[60dvh] items-center justify-center bg-ink font-ui text-ink-muted">
@@ -79,29 +63,37 @@ export default function Watchlist() {
     );
   }
 
-  const includes = (tabKey) => tab === 'all' || tab === tabKey;
-  const counts = {
-    all: shows.length + movies.length + later.length,
-    shows: shows.length,
-    movies: movies.length,
-    later: later.length,
+  const filters = type === 'shows' ? SHOW_FILTERS : MOVIE_FILTERS;
+  const all = type === 'shows' ? shows : movies;
+  const matchesFilter = (item) => {
+    if (filter === 'all') return true;
+    if (type === 'shows') return item.status === filter;
+    return filter === 'watched' ? item.watched : !item.watched;
+  };
+  const countFor = (key) => {
+    if (key === 'all') return all.length;
+    if (type === 'shows') return shows.filter((s) => s.status === key).length;
+    return movies.filter((m) => (key === 'watched' ? m.watched : !m.watched)).length;
   };
 
-  const trimmed = query.trim();
-  const entries = [
-    ...(includes('shows') ? shows.map((s) => ({ kind: 'show', key: `show-${s.id}`, title: s.title, item: s })) : []),
-    ...(includes('movies') ? movies.map((m) => ({ kind: 'movie', key: `movie-${m.id}`, title: m.title, item: m })) : []),
-    ...(includes('later') ? later.map((w) => ({ kind: 'later', key: `later-${w.id}`, title: w.title, item: w })) : []),
-  ]
-    .filter((e) => (e.title || '').toLowerCase().includes(trimmed.toLowerCase()))
-    .sort((a, b) => (a.title || '').localeCompare(b.title || '', locale));
+  const trimmed = query.trim().toLowerCase();
+  const entries = all
+    .filter(matchesFilter)
+    .filter((item) => item.title.toLowerCase().includes(trimmed))
+    .sort((a, b) => a.title.localeCompare(b.title, locale));
 
   const pageCount = Math.max(1, Math.ceil(entries.length / PER_PAGE));
   const currentPage = Math.min(page, pageCount);
   const visible = entries.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
-  const changeTab = (key) => {
-    setTab(key);
+  const changeType = (key) => {
+    setType(key);
+    setFilter('all');
+    setPage(1);
+  };
+
+  const changeFilter = (key) => {
+    setFilter(key);
     setPage(1);
   };
 
@@ -121,7 +113,33 @@ export default function Watchlist() {
           <p className="mt-4 max-w-md text-ink-muted">{t('watchlist.subtitle')}</p>
         </header>
 
-        <div className="animate-rise relative mt-10 max-w-md" style={{ animationDelay: '120ms' }}>
+        <div role="tablist" className="animate-rise mt-10 flex gap-8 border-b border-ink-line" style={{ animationDelay: '100ms' }}>
+          {['shows', 'movies'].map((kind) => (
+            <button
+              key={kind}
+              type="button"
+              role="tab"
+              aria-selected={type === kind}
+              onClick={() => changeType(kind)}
+              className={`relative -mb-px pb-3 font-display text-2xl transition-colors ${
+                type === kind ? 'text-paper' : 'text-ink-muted hover:text-paper'
+              }`}
+            >
+              {t(`watchlist.types.${kind}`)}
+              <span className="ml-2 font-ui text-sm tabular-nums text-ink-muted">
+                {kind === 'shows' ? shows.length : movies.length}
+              </span>
+              <span
+                aria-hidden="true"
+                className={`absolute inset-x-0 -bottom-px h-0.5 origin-left bg-signal transition-transform duration-300 ${
+                  type === kind ? 'scale-x-100' : 'scale-x-0'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+
+        <div className="animate-rise relative mt-8 max-w-md" style={{ animationDelay: '140ms' }}>
           <label htmlFor="watchlist-search" className="sr-only">
             {t('watchlist.searchPlaceholder')}
           </label>
@@ -149,14 +167,19 @@ export default function Watchlist() {
           </div>
         </div>
 
-        <div className="animate-rise mt-8 flex flex-wrap gap-2" style={{ animationDelay: '180ms' }}>
-          {TABS.map((key) => {
-            const active = tab === key;
+        <div className="animate-rise mt-6 flex flex-wrap gap-2" style={{ animationDelay: '180ms' }}>
+          {filters.map((key) => {
+            const active = filter === key;
+            const label = key === 'all'
+              ? t(`watchlist.all.${type}`)
+              : type === 'shows'
+                ? t(`status.${key}`)
+                : t(`watchlist.movieFilters.${key}`);
             return (
               <button
                 key={key}
                 type="button"
-                onClick={() => changeTab(key)}
+                onClick={() => changeFilter(key)}
                 aria-pressed={active}
                 className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
                   active
@@ -164,8 +187,8 @@ export default function Watchlist() {
                     : 'border-ink-line text-ink-muted hover:border-signal/60 hover:text-paper'
                 }`}
               >
-                {t(`watchlist.tabs.${key}`)}
-                <span className="ml-2 tabular-nums opacity-60">{counts[key]}</span>
+                {label}
+                <span className="ml-2 tabular-nums opacity-60">{countFor(key)}</span>
               </button>
             );
           })}
@@ -178,19 +201,25 @@ export default function Watchlist() {
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {visible.map((entry, i) => (
-                <Entry
-                  key={entry.key}
-                  entry={entry}
-                  delay={Math.min(i, 12) * 50}
-                  onShowStatus={changeShowStatus}
-                  onMovieWatched={toggleMovieWatched}
-                  onMovieRate={rateMovie}
-                  onMovieRemove={removeMovie}
-                  onLaterStart={startTracking}
-                  onLaterRemove={removeLater}
-                />
-              ))}
+              {visible.map((item, i) =>
+                type === 'shows' ? (
+                  <ShowEntry
+                    key={`show-${item.id}`}
+                    show={item}
+                    delay={Math.min(i, 12) * 50}
+                    onStatusChange={changeShowStatus}
+                  />
+                ) : (
+                  <MovieEntry
+                    key={`movie-${item.id}`}
+                    movie={item}
+                    delay={Math.min(i, 12) * 50}
+                    onWatchedChange={toggleMovieWatched}
+                    onRate={rateMovie}
+                    onRemove={removeMovie}
+                  />
+                )
+              )}
             </div>
           )}
         </div>
@@ -201,94 +230,56 @@ export default function Watchlist() {
   );
 }
 
-// Une carte selon son type : série (statut et progression), film (vu et note), ou « à voir plus tard ».
-function Entry({
-  entry,
-  delay,
-  onShowStatus,
-  onMovieWatched,
-  onMovieRate,
-  onMovieRemove,
-  onLaterStart,
-  onLaterRemove,
-}) {
+function ShowEntry({ show, delay, onStatusChange }) {
   const { t } = useI18n();
-  const { kind, item } = entry;
-
-  if (kind === 'show') {
-    return (
-      <PosterCard
-        title={item.title}
-        year={t('card.typeShow')}
-        posterUrl={item.poster_url}
-        to={`/show/${item.id}`}
-        delay={delay}
-        cornerBadge={<StatusMenu status={item.status} onChange={(status) => onShowStatus(item.id, status)} />}
-        footer={
-          <ProgressBar value={item.watched_episodes} max={item.total_episodes} status={item.status} />
-        }
-      />
-    );
-  }
-
-  if (kind === 'movie') {
-    const year = (item.release_date || '').slice(0, 4);
-    const meta = [year, item.runtime ? t('detail.minutes', { count: item.runtime }) : ''].filter(Boolean).join(' · ');
-    const label = item.watched ? t('watchlist.unmarkWatched') : t('watchlist.markWatched');
-    return (
-      <PosterCard
-        title={item.title}
-        year={meta}
-        posterUrl={item.poster_url}
-        to={`/movie/${item.id}`}
-        delay={delay}
-        cornerBadge={
-          <button
-            type="button"
-            onClick={() => onMovieWatched(item.id, !item.watched)}
-            aria-pressed={item.watched}
-            aria-label={label}
-            title={label}
-            className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm transition ${
-              item.watched
-                ? 'border-signal bg-signal text-signal-ink'
-                : 'border-paper/30 bg-ink/70 text-paper/80 backdrop-blur hover:border-signal hover:text-signal'
-            }`}
-          >
-            ✓
-          </button>
-        }
-        footer={
-          <div className="flex items-center justify-between gap-2">
-            <RatingStars value={item.rating} onChange={(val) => onMovieRate(item.id, val)} />
-            <button
-              type="button"
-              onClick={() => onMovieRemove(item.id)}
-              className="text-xs text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
-            >
-              {t('watchlist.remove')}
-            </button>
-          </div>
-        }
-      />
-    );
-  }
-
-  // « À voir plus tard » : pas encore de fiche locale, donc la carte n'est pas cliquable.
   return (
     <PosterCard
-      title={item.title}
-      year={item.target_type === 'show' ? t('card.typeShow') : t('card.typeMovie')}
-      posterUrl={item.poster_url}
+      title={show.title}
+      year={t('card.typeShow')}
+      posterUrl={show.poster_url}
+      to={`/show/${show.id}`}
       delay={delay}
+      cornerBadge={<StatusMenu status={show.status} onChange={(status) => onStatusChange(show.id, status)} />}
+      footer={<ProgressBar value={show.watched_episodes} max={show.total_episodes} status={show.status} />}
+    />
+  );
+}
+
+function MovieEntry({ movie, delay, onWatchedChange, onRate, onRemove }) {
+  const { t } = useI18n();
+  const year = (movie.release_date || '').slice(0, 4);
+  const meta = [year, movie.runtime ? t('detail.minutes', { count: movie.runtime }) : ''].filter(Boolean).join(' · ');
+  const label = movie.watched ? t('watchlist.unmarkWatched') : t('watchlist.markWatched');
+
+  return (
+    <PosterCard
+      title={movie.title}
+      year={meta}
+      posterUrl={movie.poster_url}
+      to={`/movie/${movie.id}`}
+      delay={delay}
+      cornerBadge={
+        <button
+          type="button"
+          onClick={() => onWatchedChange(movie.id, !movie.watched)}
+          aria-pressed={movie.watched}
+          aria-label={label}
+          title={label}
+          className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm transition ${
+            movie.watched
+              ? 'border-signal bg-signal text-signal-ink'
+              : 'border-paper/30 bg-ink/70 text-paper/80 backdrop-blur hover:border-signal hover:text-signal'
+          }`}
+        >
+          ✓
+        </button>
+      }
       footer={
-        <div className="flex items-center justify-between gap-2 text-sm">
-          <button type="button" onClick={() => onLaterStart(item)} className="text-signal underline-offset-4 hover:underline">
-            {t('watchlist.start')}
-          </button>
+        <div className="flex items-center justify-between gap-2">
+          <RatingStars value={movie.rating} onChange={(val) => onRate(movie.id, val)} />
           <button
             type="button"
-            onClick={() => onLaterRemove(item.id)}
+            onClick={() => onRemove(movie.id)}
             className="text-xs text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
           >
             {t('watchlist.remove')}
