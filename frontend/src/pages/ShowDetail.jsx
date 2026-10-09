@@ -25,13 +25,10 @@ export default function ShowDetail() {
     client.get(`/shows/${id}`).then((res) => setShow(res.data));
   };
 
-  // La première saison s'ouvre à l'arrivée sur la fiche, une seule fois : les rechargements ne rouvrent
-  // pas une saison que l'utilisateur a refermée.
+  // Toutes les saisons sont repliées à l'arrivée sur la fiche : l'utilisateur ouvre celle qu'il veut.
   useEffect(() => {
-    client.get(`/shows/${id}`).then((res) => {
-      setShow(res.data);
-      setOpenSeason(res.data.seasons.length > 0 ? res.data.seasons[0].id : null);
-    });
+    setOpenSeason(null);
+    client.get(`/shows/${id}`).then((res) => setShow(res.data));
   }, [id]);
 
   if (!show) {
