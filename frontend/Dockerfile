@@ -6,6 +6,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+# Adresse publique du site (liens canoniques, sitemap). À régler au déploiement.
+ARG VITE_SITE_URL=http://localhost:8080
 RUN npm run build
 
 # Étape 2 : Nginx sert le build, proxifie /api vers le backend et expose /documentation

@@ -9,6 +9,8 @@ const LOCALES = { fr: 'fr-FR', en: 'en-GB' };
 const STORAGE_KEY = 'tvt-lang';
 
 function readInitialLang() {
+  // Pendant le pré-rendu (pas de navigateur), la langue par défaut est le français.
+  if (typeof window === 'undefined') return 'fr';
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored && DICTIONARIES[stored]) return stored;

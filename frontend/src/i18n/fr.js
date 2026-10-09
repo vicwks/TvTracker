@@ -15,6 +15,90 @@ export const fr = {
     deleteMovieTitle: 'Supprimer le film ?',
     removeMovieTitle: 'Retirer le film ?',
   },
+  seo: {
+    siteName: "TV Tracker",
+    home: {
+      title: "TV Tracker : suivez vos séries et vos films",
+      description: "TV Tracker garde la trace de vos séries et de vos films, épisode par épisode : progression, watchlist, calendrier des sorties et statistiques.",
+    },
+    login: {
+      title: "Connexion · TV Tracker",
+      description: "Connectez-vous à TV Tracker pour retrouver votre watchlist, votre progression et votre calendrier.",
+    },
+    register: {
+      title: "Créer un compte · TV Tracker",
+      description: "Créez votre compte TV Tracker pour suivre vos séries et vos films.",
+    },
+    cgu: {
+      title: "Conditions générales d'utilisation · TV Tracker",
+      description: "Conditions générales d'utilisation du site TV Tracker.",
+    },
+    mentions: {
+      title: "Mentions légales · TV Tracker",
+      description: "Mentions légales du site TV Tracker.",
+    },
+    notFound: {
+      title: "Page introuvable · TV Tracker",
+      description: "Cette page n'existe pas ou n'est plus disponible.",
+    },
+  },
+  landing: {
+    headline: "Suivez vos séries et vos films, sans rater aucun épisode.",
+    intro: "TV Tracker garde la trace de ce que vous regardez : où vous en êtes dans chaque série, ce que vous avez aimé et ce qui sort bientôt.",
+    ctaRegister: "Créer mon compte",
+    ctaLogin: "J'ai déjà un compte",
+    featuresTitle: "Tout ce qu’il faut pour suivre vos séries et vos films",
+    features: [
+      {
+        title: "Progression épisode par épisode",
+        text: "Marquez les épisodes vus, saison par saison. TV Tracker retrouve le prochain épisode à regarder.",
+      },
+      {
+        title: "Une watchlist pour tout",
+        text: "Séries et films dans une même liste, avec leur statut : à voir, en cours, en pause, terminé ou abandonné.",
+      },
+      {
+        title: "Calendrier des sorties",
+        text: "Les prochains épisodes de vos séries, à partir d’aujourd’hui, et ceux que vous avez manqués.",
+      },
+      {
+        title: "Notes et remarques",
+        text: "Notez les séries, les films et les épisodes, et gardez vos remarques au même endroit.",
+      },
+      {
+        title: "Statistiques de visionnage",
+        text: "Temps passé, épisodes vus, rythme de visionnage et genres que vous regardez le plus.",
+      },
+      {
+        title: "Découverte et amis",
+        text: "Parcourez les tendances, cherchez un titre et voyez ce que regardent vos amis.",
+      },
+    ],
+    faqTitle: "Questions fréquentes",
+    faq: [
+      {
+        q: "Comment suivre une série ?",
+        a: "Cherchez-la dans Découvrir, ajoutez-la à votre watchlist, puis marquez les épisodes que vous avez vus.",
+      },
+      {
+        q: "D'où viennent les informations sur les séries et les films ?",
+        a: "Titres, affiches, saisons et épisodes proviennent de The Movie Database (TMDB). TV Tracker n'est pas approuvé ni certifié par TMDB.",
+      },
+      {
+        q: "Mes amis voient-ils ce que je regarde ?",
+        a: "Vos amis voient seulement les séries que vous êtes en train de regarder.",
+      },
+      {
+        q: "Le site est-il disponible en anglais ?",
+        a: "Oui. L'interface est disponible en français et en anglais, avec le sélecteur de langue en haut de page.",
+      },
+    ],
+  },
+  notFound: {
+    title: "Cette page n’existe pas",
+    text: "Le lien est peut-être incorrect ou la page a été déplacée.",
+    back: "Retour à l'accueil",
+  },
   language: {
     label: 'Langue',
     fr: 'Français',

@@ -15,6 +15,90 @@ export const en = {
     deleteMovieTitle: 'Delete this movie?',
     removeMovieTitle: 'Remove this movie?',
   },
+  seo: {
+    siteName: "TV Tracker",
+    home: {
+      title: "TV Tracker: follow your shows and movies",
+      description: "TV Tracker keeps track of your TV shows and movies, episode by episode: progress, watchlist, release calendar and viewing statistics.",
+    },
+    login: {
+      title: "Log in · TV Tracker",
+      description: "Log in to TV Tracker to find your watchlist, your progress and your calendar.",
+    },
+    register: {
+      title: "Create an account · TV Tracker",
+      description: "Create your TV Tracker account to follow your shows and movies.",
+    },
+    cgu: {
+      title: "Terms of use · TV Tracker",
+      description: "Terms of use of the TV Tracker website.",
+    },
+    mentions: {
+      title: "Legal notice · TV Tracker",
+      description: "Legal notice of the TV Tracker website.",
+    },
+    notFound: {
+      title: "Page not found · TV Tracker",
+      description: "This page does not exist or is no longer available.",
+    },
+  },
+  landing: {
+    headline: "Follow your shows and movies, and never miss an episode.",
+    intro: "TV Tracker keeps track of what you watch: where you are in each show, what you liked and what is coming out soon.",
+    ctaRegister: "Create my account",
+    ctaLogin: "I already have an account",
+    featuresTitle: "Everything you need to follow your shows and movies",
+    features: [
+      {
+        title: "Progress episode by episode",
+        text: "Mark the episodes you have seen, season by season. TV Tracker finds the next episode to watch.",
+      },
+      {
+        title: "One watchlist for everything",
+        text: "Shows and movies in one list, with their status: to watch, watching, paused, completed or dropped.",
+      },
+      {
+        title: "Release calendar",
+        text: "The upcoming episodes of your shows, from today, and the ones you missed.",
+      },
+      {
+        title: "Ratings and notes",
+        text: "Rate shows, movies and episodes, and keep your notes in the same place.",
+      },
+      {
+        title: "Viewing statistics",
+        text: "Time spent, episodes watched, viewing rhythm and the genres you watch the most.",
+      },
+      {
+        title: "Discovery and friends",
+        text: "Browse what is trending, search for a title and see what your friends are watching.",
+      },
+    ],
+    faqTitle: "Frequently asked questions",
+    faq: [
+      {
+        q: "How do I follow a show?",
+        a: "Search for it in Discover, add it to your watchlist, then mark the episodes you have seen.",
+      },
+      {
+        q: "Where does the information about shows and movies come from?",
+        a: "Titles, posters, seasons and episodes come from The Movie Database (TMDB). TV Tracker is not endorsed or certified by TMDB.",
+      },
+      {
+        q: "Can my friends see what I watch?",
+        a: "Your friends only see the shows you are currently watching.",
+      },
+      {
+        q: "Is the site available in English?",
+        a: "Yes. The interface is available in French and English, with the language switch at the top of the page.",
+      },
+    ],
+  },
+  notFound: {
+    title: "This page does not exist",
+    text: "The link may be wrong or the page may have moved.",
+    back: "Back to home",
+  },
   language: {
     label: 'Language',
     fr: 'Français',

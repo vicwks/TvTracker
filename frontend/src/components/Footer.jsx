@@ -33,7 +33,7 @@ export default function Footer() {
 
         {user && (
           <nav aria-label={t('footer.navigationAria')}>
-            <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">{t('footer.navigation')}</p>
+            <h2 className="text-xs font-normal uppercase tracking-[0.2em] text-ink-muted">{t('footer.navigation')}</h2>
             <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
               {FOOTER_LINKS.map((item) => (
                 <li key={item.to}>
@@ -47,7 +47,7 @@ export default function Footer() {
         )}
 
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">{t('footer.information')}</p>
+          <h2 className="text-xs font-normal uppercase tracking-[0.2em] text-ink-muted">{t('footer.information')}</h2>
           <ul className="mt-4 space-y-2 text-sm">
             {LEGAL_LINKS.map((item) => (
               <li key={item.to}>

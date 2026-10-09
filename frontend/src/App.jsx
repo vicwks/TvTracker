@@ -4,13 +4,16 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
+import { useI18n } from './i18n/LanguageContext.jsx';
+import { applyHead, pageMeta } from './seo/meta.js';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import Home from './pages/Home.jsx';
+import NotFound from './pages/NotFound.jsx';
 // Pages légales : petites, et sans elles le pied de page se décalerait au chargement.
 import { Cgu, MentionsLegales } from './pages/Legal.jsx';
 
 // Chaque page est chargée à la demande : le premier écran ne télécharge que le code de sa page.
-const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const Discover = lazy(() => import('./pages/Discover.jsx'));
 const ShowDetail = lazy(() => import('./pages/ShowDetail.jsx'));
 const MovieDetail = lazy(() => import('./pages/MovieDetail.jsx'));
@@ -25,11 +28,18 @@ const AUTH_PATHS = ['/login', '/register'];
 
 export default function App() {
   const { pathname } = useLocation();
+  const { lang } = useI18n();
 
   // Changer de page repart du haut : une fiche ouverte depuis le bas d'une liste s'affiche en haut.
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  // Titre, description et robots propres à la page (les pages privées ne sont pas indexées).
+  useEffect(() => {
+    applyHead(pageMeta(pathname, lang));
+  }, [pathname, lang]);
+
   const isAuthPage = AUTH_PATHS.includes(pathname);
 
   return (
@@ -44,7 +54,7 @@ export default function App() {
             <Route path="/cgu" element={<Cgu />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
 
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/" element={<Home />} />
             <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/search" element={<Navigate to="/discover" replace />} />
             <Route path="/show/:id" element={<ProtectedRoute><ShowDetail /></ProtectedRoute>} />
@@ -56,6 +66,7 @@ export default function App() {
             <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
             <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
         {!isAuthPage && <Footer />}
