@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -21,6 +22,11 @@ const AUTH_PATHS = ['/login', '/register'];
 
 export default function App() {
   const { pathname } = useLocation();
+
+  // Changer de page repart du haut : une fiche ouverte depuis le bas d'une liste s'affiche en haut.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
   const isAuthPage = AUTH_PATHS.includes(pathname);
 
   return (

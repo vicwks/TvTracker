@@ -153,7 +153,10 @@ export default function Discover() {
               type="button"
               role="tab"
               aria-selected={type === kind}
-              onClick={() => setType(kind)}
+              onClick={() => {
+                setType(kind);
+                window.scrollTo(0, 0);
+              }}
               className={`relative -mb-px pb-3 font-display text-2xl transition-colors ${
                 type === kind ? 'text-paper' : 'text-ink-muted hover:text-paper'
               }`}

@@ -92,6 +92,7 @@ export default function Watchlist() {
 
   const changeType = (key) => {
     setType(key);
+    window.scrollTo(0, 0);
     setFilter('all');
     setPage(1);
   };

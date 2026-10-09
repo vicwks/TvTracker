@@ -25,6 +25,12 @@ function pageItems(page, pageCount) {
 export default function Pagination({ page, pageCount, onChange }) {
   const { t } = useI18n();
 
+  // Changer de page remonte en haut de la liste, sinon on reste au pied de page.
+  const goTo = (target) => {
+    onChange(target);
+    window.scrollTo(0, 0);
+  };
+
   if (pageCount <= 1) return null;
 
   const arrowClass =
@@ -32,7 +38,7 @@ export default function Pagination({ page, pageCount, onChange }) {
 
   return (
     <nav aria-label={t('pagination.label')} className="mt-10 flex items-center justify-center gap-1 font-ui text-sm">
-      <button type="button" onClick={() => onChange(page - 1)} disabled={page === 1} className={arrowClass}>
+      <button type="button" onClick={() => goTo(page - 1)} disabled={page === 1} className={arrowClass}>
         <span className="sr-only">{t('pagination.previous')}</span>
         <span aria-hidden="true">←</span>
       </button>
@@ -47,7 +53,7 @@ export default function Pagination({ page, pageCount, onChange }) {
             <li key={`page-${item.page}`}>
               <button
                 type="button"
-                onClick={() => onChange(item.page)}
+                onClick={() => goTo(item.page)}
                 aria-current={item.page === page ? 'page' : undefined}
                 aria-label={t('pagination.page', { page: item.page })}
                 className={`flex h-9 min-w-9 items-center justify-center rounded-md px-2 tabular-nums transition ${
@@ -61,7 +67,7 @@ export default function Pagination({ page, pageCount, onChange }) {
         )}
       </ul>
 
-      <button type="button" onClick={() => onChange(page + 1)} disabled={page === pageCount} className={arrowClass}>
+      <button type="button" onClick={() => goTo(page + 1)} disabled={page === pageCount} className={arrowClass}>
         <span className="sr-only">{t('pagination.next')}</span>
         <span aria-hidden="true">→</span>
       </button>
