@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { cached } from '../services/cache.js';
-import { getTrendingAll, IMAGE_BASE_URL_LARGE } from '../services/tmdb.js';
+import { getTrendingAll, IMAGE_BASE_URL } from '../services/tmdb.js';
 
 const router = Router();
 
@@ -21,7 +21,8 @@ function toTopPosters(results) {
         tmdb_id: r.id,
         type: isShow ? 'show' : 'movie',
         title: isShow ? r.name : r.title,
-        poster_url: `${IMAGE_BASE_URL_LARGE}${r.poster_path}`,
+        // w500 : une affiche pèse environ 90 Ko (contre 180 à 370 Ko en w780) ; elle s'affiche sous un voile sombre.
+        poster_url: `${IMAGE_BASE_URL}${r.poster_path}`,
       };
     });
 }

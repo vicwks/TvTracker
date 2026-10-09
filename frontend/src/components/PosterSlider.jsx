@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import client from '../api/client.js';
 import { useI18n } from '../i18n/LanguageContext.jsx';
 
 // Carrousel d'affiches en plein fond : colonne de gauche des pages de connexion et d'inscription.
@@ -26,9 +25,10 @@ export default function PosterSlider({ className = '', children }) {
 
   useEffect(() => {
     let active = true;
-    client
-      .get('/public/posters')
-      .then(({ data }) => {
+    // fetch (et non axios) pour reprendre la requête préchargée par index.html.
+    fetch('/api/public/posters')
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('posters'))))
+      .then((data) => {
         if (active) setPosters(data);
       })
       // Sans affiches, le panneau reste un aplat sombre avec son texte : le formulaire reste utilisable.
@@ -85,7 +85,12 @@ export default function PosterSlider({ className = '', children }) {
                 <img
                   src={poster.poster_url}
                   alt=""
-                  loading="eager"
+                  width={780}
+                  height={1170}
+                  // Seule la première affiche est chargée tout de suite (c'est elle qui s'affiche au départ).
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={i === 0 ? 'high' : 'auto'}
+                  decoding="async"
                   className="h-full w-full object-cover"
                 />
               </div>

@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TV Tracker</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Polices servies par le site lui-même (pas de requête vers Google) : préchargées pour le premier affichage. -->
+    <link rel="preload" href="/fonts/Fraunces-400-600-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/IBM-Plex-Sans-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Liste des affiches du carrousel : téléchargée en parallèle du JavaScript. -->
+    <link rel="preload" href="/api/public/posters" as="fetch" crossorigin />
+    <!-- Affiches TMDB : connexion ouverte dès le départ. -->
+    <link rel="preconnect" href="https://image.tmdb.org" crossorigin />
   </head>
   <body class="bg-zinc-950 text-zinc-100">
     <div id="root"></div>
