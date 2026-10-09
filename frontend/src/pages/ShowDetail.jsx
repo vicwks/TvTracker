@@ -149,8 +149,18 @@ export default function ShowDetail() {
               <RatingStars value={show.rating} onChange={rateShow} />
             </div>
 
-            <div className="mt-6 max-w-sm">
-              <ProgressBar value={watchedEpisodes} max={totalEpisodes} status={status} />
+            {/* Progression à gauche, suppression à droite, sur la même ligne. */}
+            <div className="mt-6 flex items-center justify-between gap-6">
+              <div className="min-w-0 max-w-sm flex-1">
+                <ProgressBar value={watchedEpisodes} max={totalEpisodes} status={status} />
+              </div>
+              <button
+                type="button"
+                onClick={deleteShow}
+                className="shrink-0 text-sm text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
+              >
+                {t('detail.delete')}
+              </button>
             </div>
 
             {nextEpisode && (
@@ -172,15 +182,6 @@ export default function ShowDetail() {
               </div>
             )}
 
-            <div className="mt-6 flex flex-wrap gap-6 text-sm">
-              <button
-                type="button"
-                onClick={deleteShow}
-                className="text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
-              >
-                {t('detail.delete')}
-              </button>
-            </div>
           </div>
         </div>
 

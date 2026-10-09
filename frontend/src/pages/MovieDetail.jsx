@@ -97,13 +97,11 @@ export default function MovieDetail() {
                 {movie.watched ? t('detail.movieWatched') : t('detail.markWatched')}
               </button>
               <RatingStars value={movie.rating} onChange={rate} />
-            </div>
-
-            <div className="mt-6 text-sm">
+              {/* Suppression à droite, sur la même ligne que le bouton « vu » et la note. */}
               <button
                 type="button"
                 onClick={remove}
-                className="text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
+                className="ml-auto text-sm text-ink-muted underline-offset-4 transition hover:text-danger hover:underline"
               >
                 {t('detail.delete')}
               </button>
