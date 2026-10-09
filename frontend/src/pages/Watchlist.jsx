@@ -252,7 +252,6 @@ function ShowEntry({ show, delay, onStatusChange }) {
   return (
     <PosterCard
       title={show.title}
-      year={show.release_year ? String(show.release_year) : ''}
       posterUrl={show.poster_url}
       to={`/show/${show.id}`}
       delay={delay}
@@ -272,6 +271,7 @@ function MovieEntry({ movie, delay, onWatchedChange, onRate, onRemove }) {
     <PosterCard
       title={movie.title}
       year={meta}
+      fixedTitleHeight={false}
       posterUrl={movie.poster_url}
       to={`/movie/${movie.id}`}
       delay={delay}

@@ -82,7 +82,7 @@ router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(
       `
-      SELECT s.id, s.title, s.poster_path, s.first_air_date, YEAR(s.first_air_date) AS release_year, s.tmdb_status, s.genres,
+      SELECT s.id, s.title, s.poster_path, s.first_air_date, s.tmdb_status, s.genres,
              st.status,
              COALESCE(tot.total, 0) AS total_episodes,
              COALESCE(seen.watched, 0) AS watched_episodes
