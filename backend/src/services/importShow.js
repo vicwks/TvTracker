@@ -3,6 +3,7 @@ import { searchShows } from './tmdb.js';
 import { syncShowFromTmdb } from './showSync.js';
 import { pickBestMatch } from './matching.js';
 import { SHOW_STATUSES } from '../utils/validation.js';
+import { refreshShowCompletion } from './showStatus.js';
 
 // Importe une série pour un utilisateur : la retrouve sur TMDB, la met dans son suivi, puis marque
 // les épisodes indiqués comme vus. Utilisé par la route /api/import et par le script TV Time.
@@ -53,6 +54,8 @@ export async function importShowForUser(userId, item, { defaultStatus = 'to_watc
           [[...toMark].map((episodeId) => [userId, episodeId, true, now, 1])]
         );
         markedCount = toMark.size;
+        // Une série entièrement vue après l'import passe directement en « Terminé ».
+        await refreshShowCompletion(userId, [showId]);
       }
     }
 
