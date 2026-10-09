@@ -15,6 +15,7 @@ export default function PosterCard({
   cornerBadge,
   friends = [],
   delay = 0,
+  fixedTitleHeight = true,
 }) {
   const { t } = useI18n();
 
@@ -49,8 +50,8 @@ export default function PosterCard({
 
   const info = (
     <>
-      {/* Hauteurs fixes (deux lignes de titre, une ligne de méta) : les cartes d'une même rangée restent alignées. */}
-      <h3 className="mt-3 line-clamp-2 min-h-[3.25rem] font-display text-lg leading-snug text-paper">{title}</h3>
+      {/* Si fixedTitleHeight, le titre réserve deux lignes : les cartes d'une même rangée restent alignées (watchlist). Sinon, la date suit directement le titre. */}
+      <h3 className={`mt-3 line-clamp-2 font-display text-lg leading-snug text-paper ${fixedTitleHeight ? 'min-h-[3.25rem]' : ''}`}>{title}</h3>
       <p className="mt-1 min-h-[1rem] text-xs tabular-nums text-ink-muted">{year || ' '}</p>
     </>
   );

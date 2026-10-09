@@ -204,6 +204,7 @@ export default function Discover() {
                   year={(item.first_air_date || item.release_date || '').slice(0, 4)}
                   posterUrl={item.poster_url}
                   friends={item.friendsWatching}
+                  fixedTitleHeight={false}
                   delay={Math.min(i, 12) * 50}
                   onOpen={() => openDetail(item)}
                   footer={
