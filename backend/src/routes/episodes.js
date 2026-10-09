@@ -69,6 +69,26 @@ router.post('/:id/rewatch', async (req, res) => {
   }
 });
 
+// Retire le dernier revisionnage d'un épisode. Le premier visionnage reste : l'épisode reste vu.
+router.delete('/:id/rewatch', async (req, res) => {
+  try {
+    const episodeId = toPositiveInt(req.params.id);
+    if (!episodeId) return res.status(404).json({ error: 'Épisode introuvable' });
+
+    const showId = await showIdOfEpisode(episodeId);
+    if (!showId) return res.status(404).json({ error: 'Épisode introuvable' });
+
+    await pool.query(
+      'UPDATE watch_status SET watch_count = watch_count - 1 WHERE user_id = ? AND episode_id = ? AND watch_count > 1',
+      [req.userId, episodeId]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur lors de la suppression du revisionnage' });
+  }
+});
+
 // Marque tous les épisodes d'une saison comme vus/non vus (pour MOI), en une seule requête.
 router.patch('/season/:seasonId/watched-all', async (req, res) => {
   try {

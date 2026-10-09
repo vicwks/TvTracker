@@ -6,6 +6,7 @@ import EpisodeRow from '../components/EpisodeRow.jsx';
 import RatingStars from '../components/RatingStars.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import StatusMenu from '../components/StatusMenu.jsx';
+import Dialog from '../components/Dialog.jsx';
 
 // Fiche d'une série : même mise en page qu'avant (affiche, progression, saisons repliables),
 // dans le style du site. Les actions restent les mêmes.
@@ -15,6 +16,8 @@ export default function ShowDetail() {
   const { t } = useI18n();
   const [show, setShow] = useState(null);
   const [openSeason, setOpenSeason] = useState(null);
+  // Épisode coché alors que des épisodes précédents de la saison ne sont pas vus : demande à confirmer.
+  const [bulk, setBulk] = useState(null);
 
   const load = () => {
     client.get(`/shows/${id}`).then((res) => {
@@ -53,22 +56,33 @@ export default function ShowDetail() {
         (e) => e.episode_number < episode.episode_number && !e.watched
       );
       if (earlierUnwatched.length > 0) {
-        const confirmBulk = window.confirm(
-          t('detail.bulkConfirm', { count: earlierUnwatched.length, season: season.name })
-        );
-        if (confirmBulk) {
-          await client.patch(`/episodes/season/${season.id}/watched-up-to/${episode.episode_number}`);
-          load();
-          return;
-        }
+        setBulk({ episodeId, episode, season, count: earlierUnwatched.length });
+        return;
       }
     }
     await client.patch(`/episodes/${episodeId}/watched`, { watched });
     load();
   };
 
+  // Choix de la fenêtre : tous les épisodes précédents, ou seulement celui coché. Annuler ne change rien.
+  const applyBulk = async (includeEarlier) => {
+    const pending = bulk;
+    setBulk(null);
+    if (includeEarlier) {
+      await client.patch(`/episodes/season/${pending.season.id}/watched-up-to/${pending.episode.episode_number}`);
+    } else {
+      await client.patch(`/episodes/${pending.episodeId}/watched`, { watched: true });
+    }
+    load();
+  };
+
   const rewatchEpisode = async (episodeId) => {
     await client.post(`/episodes/${episodeId}/rewatch`);
+    load();
+  };
+
+  const undoRewatch = async (episodeId) => {
+    await client.delete(`/episodes/${episodeId}/rewatch`);
     load();
   };
 
@@ -170,6 +184,19 @@ export default function ShowDetail() {
           </div>
         </div>
 
+        {bulk && (
+          <Dialog
+            title={t('detail.bulkTitle')}
+            onClose={() => setBulk(null)}
+            actions={[
+              { label: t('detail.bulkOnly'), onClick: () => applyBulk(false) },
+              { label: t('detail.bulkAll'), onClick: () => applyBulk(true), primary: true },
+            ]}
+          >
+            {t('detail.bulkConfirm', { count: bulk.count, season: bulk.season.name })}
+          </Dialog>
+        )}
+
         <div className="mt-16">
           {show.seasons.map((season) => {
             const watchedCount = season.episodes.filter((e) => e.watched).length;
@@ -208,6 +235,7 @@ export default function ShowDetail() {
                         onToggleWatched={(epId, watched) => toggleWatched(epId, watched, ep, season)}
                         onRate={rateEpisode}
                         onRewatch={rewatchEpisode}
+                      onUndoRewatch={undoRewatch}
                       />
                     ))}
                   </div>
