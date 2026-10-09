@@ -6,13 +6,24 @@ import { requireAuth } from '../middleware/requireAuth.js';
 const router = Router();
 router.use(requireAuth);
 
-// Liste les épisodes à venir (ou diffusés récemment) pour MES séries activement suivies
-// (statut "watching" ou "to_watch"), triés par date de diffusion.
-// ?days=N : fenêtre vers le futur, entre 1 et 365 jours (60 par défaut).
+// Épisodes de MES séries activement suivies (statut "watching" ou "to_watch"), triés par date de diffusion.
+//   ?days=N : les épisodes à venir, à partir d'aujourd'hui, sur N jours (60 par défaut).
+//   ?past=N : les épisodes diffusés avant aujourd'hui, sur les N derniers jours, du plus récent au plus ancien.
+// N est compris entre 1 et 365.
+function parseDays(value, fallback) {
+  const parsed = parseInt(value, 10);
+  return Number.isInteger(parsed) ? Math.min(Math.max(parsed, 1), 365) : fallback;
+}
+
 router.get('/', async (req, res) => {
   try {
-    const parsed = parseInt(req.query.days, 10);
-    const days = Number.isInteger(parsed) ? Math.min(Math.max(parsed, 1), 365) : 60;
+    const isPast = req.query.past !== undefined;
+    const days = isPast ? parseDays(req.query.past, 60) : parseDays(req.query.days, 60);
+    // Fragments SQL constants : la seule valeur saisie par l'utilisateur est le nombre de jours, passé en paramètre.
+    const dateCondition = isPast
+      ? 'e.air_date BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY) AND DATE_SUB(CURDATE(), INTERVAL 1 DAY)'
+      : 'e.air_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)';
+    const order = isPast ? 'DESC' : 'ASC';
 
     const [rows] = await pool.query(
       `
@@ -23,8 +34,8 @@ router.get('/', async (req, res) => {
       JOIN seasons se ON se.show_id = s.id
       JOIN episodes e ON e.season_id = se.id
       WHERE st.user_id = ? AND st.status IN ('watching', 'to_watch')
-        AND e.air_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 14 DAY) AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
-      ORDER BY e.air_date ASC
+        AND ${dateCondition}
+      ORDER BY e.air_date ${order}, s.title ASC
       `,
       [req.userId, days]
     );

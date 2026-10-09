@@ -9,23 +9,21 @@ function localToday() {
   return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
 
-// Calendrier : les épisodes à venir groupés par jour, même identité que « Prochains épisodes » du tableau de bord.
+// Calendrier : deux vues. Les sorties à venir (à partir d'aujourd'hui), ou les sorties passées sur deux mois.
 export default function CalendarPage() {
   const { t, locale } = useI18n();
+  const [view, setView] = useState('upcoming'); // "upcoming" | "past"
   const [episodes, setEpisodes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    client.get('/calendar?days=90').then((res) => setEpisodes(res.data)).finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[60dvh] items-center justify-center bg-ink font-ui text-ink-muted">
-        <p className="animate-pulse text-sm">{t('common.loading')}</p>
-      </div>
-    );
-  }
+    setLoading(true);
+    const url = view === 'past' ? '/calendar?past=60' : '/calendar?days=90';
+    client
+      .get(url)
+      .then((res) => setEpisodes(res.data))
+      .finally(() => setLoading(false));
+  }, [view]);
 
   const grouped = episodes.reduce((acc, ep) => {
     acc[ep.air_date] = acc[ep.air_date] || [];
@@ -34,21 +32,37 @@ export default function CalendarPage() {
   }, {});
 
   const today = localToday();
+  const isPast = view === 'past';
 
   return (
     <div className="min-h-[70dvh] bg-ink font-ui text-paper">
       <div className="mx-auto max-w-3xl px-6 pb-20 pt-14 sm:px-8 sm:pt-20">
         <header className="animate-rise">
-          <p className="text-xs uppercase tracking-[0.25em] text-ink-muted">{t('calendar.kicker')}</p>
+          <p className="text-xs uppercase tracking-[0.25em] text-ink-muted">
+            {isPast ? t('calendar.pastKicker') : t('calendar.kicker')}
+          </p>
           <h1 className="mt-4 font-display text-5xl font-medium leading-[1.02] tracking-tight sm:text-7xl">
             {t('calendar.title')}
           </h1>
-          <p className="mt-4 max-w-md text-ink-muted">{t('calendar.subtitle')}</p>
+          <p className="mt-4 max-w-md text-ink-muted">
+            {isPast ? t('calendar.pastSubtitle') : t('calendar.subtitle')}
+          </p>
+          <button
+            type="button"
+            onClick={() => setView(isPast ? 'upcoming' : 'past')}
+            className="mt-6 text-sm text-signal underline-offset-4 transition hover:underline"
+          >
+            {isPast ? t('calendar.backToUpcoming') : t('calendar.showPast')}
+          </button>
         </header>
 
         <div className="mt-12">
-          {Object.keys(grouped).length === 0 ? (
-            <p className="border-l border-signal/60 pl-4 text-sm text-ink-muted">{t('calendar.empty')}</p>
+          {loading ? (
+            <p className="animate-pulse text-sm text-ink-muted">{t('common.loading')}</p>
+          ) : Object.keys(grouped).length === 0 ? (
+            <p className="border-l border-signal/60 pl-4 text-sm text-ink-muted">
+              {isPast ? t('calendar.emptyPast') : t('calendar.empty')}
+            </p>
           ) : (
             <div className="space-y-12">
               {Object.entries(grouped).map(([date, eps], i) => (

@@ -133,7 +133,7 @@
       <thead><tr><th>Méthode</th><th>Route</th><th>Description</th></tr></thead>
       <tbody>
         <tr><td>GET</td><td><code>/api/stats</code></td><td>Statistiques du visionné uniquement (épisodes cochés, films vus) : temps total, genres en minutes vues, évolution mensuelle, meilleures séries et films notés, revisionnages, note moyenne, séries de jours, rythme par jour de la semaine et par heure.</td></tr>
-        <tr><td>GET</td><td><code>/api/calendar</code></td><td>Prochains épisodes des séries suivies.</td></tr>
+        <tr><td>GET</td><td><code>/api/calendar</code></td><td>Épisodes des séries suivies : à venir à partir d’aujourd’hui (<code>?days=N</code>), ou sorties passées sur les N derniers jours, du plus récent au plus ancien (<code>?past=N</code>).</td></tr>
         <tr><td>POST</td><td><code>/api/import</code></td><td>Import « au mieux » d'une liste { shows: [{ title, watched_episodes }] }. Renvoie un rapport (voir Fonctionnement).</td></tr>
       </tbody>
     </table>
