@@ -107,9 +107,10 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-ink font-ui text-paper">
-      <header className="relative overflow-hidden border-b border-ink-line">
+      {/* Pas de overflow-hidden ici : la liste de résultats de recherche doit déborder sous le bandeau. */}
+      <header className="relative z-10 border-b border-ink-line">
         {backdrop && (
-          <div className="absolute inset-0" aria-hidden="true">
+          <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
             <img src={backdrop} alt="" className="h-full w-full object-cover opacity-25 blur-[2px]" />
             <div className="absolute inset-0 bg-gradient-to-b from-ink/30 via-ink/85 to-ink" />
           </div>

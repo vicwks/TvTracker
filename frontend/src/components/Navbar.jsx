@@ -6,7 +6,7 @@ import LanguageSwitch from './LanguageSwitch.jsx';
 
 // Liens de navigation : soulignement ambre qui se dessine au survol et pour la page active.
 const linkClass = ({ isActive }) =>
-  `relative py-1 text-sm transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:bg-signal after:transition-transform after:duration-300 after:content-[''] hover:text-paper hover:after:scale-x-100 ${
+  `relative whitespace-nowrap py-1 text-sm transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:bg-signal after:transition-transform after:duration-300 after:content-[''] hover:text-paper hover:after:scale-x-100 ${
     isActive ? 'text-paper after:scale-x-100' : 'text-ink-muted after:scale-x-0'
   }`;
 
@@ -35,13 +35,16 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-30 border-b border-ink-line bg-ink/85 font-ui text-paper backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4 sm:px-8">
-        <Link to={user ? '/' : '/login'} className="font-display text-lg font-medium tracking-tight text-paper">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-3 px-6 py-4 sm:px-8">
+        <Link
+          to={user ? '/' : '/login'}
+          className="shrink-0 font-display text-lg font-medium tracking-tight text-paper"
+        >
           {t('common.brand')}
         </Link>
 
         {user && (
-          <div aria-label={t('nav.main')} className="flex flex-wrap gap-x-5 gap-y-2">
+          <div aria-label={t('nav.main')} className="flex flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2">
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
                 {t(`nav.${item.key}`)}
@@ -50,7 +53,7 @@ export default function Navbar() {
           </div>
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <LanguageSwitch />
           {user && (
             <>
