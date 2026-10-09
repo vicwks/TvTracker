@@ -89,6 +89,7 @@
         <tr><td>POST</td><td><code>/api/shows/recompute-status</code></td><td>Maintenance : recalcule le statut automatique « terminé ».</td></tr>
         <tr><td>PATCH</td><td><code>/api/episodes/:id/watched</code></td><td>Marque un épisode vu ou non.</td></tr>
         <tr><td>POST</td><td><code>/api/episodes/:id/rewatch</code></td><td>Incrémente le compteur de revisionnage (↻).</td></tr>
+        <tr><td>DELETE</td><td><code>/api/episodes/:id/rewatch</code></td><td>Retire le dernier revisionnage (−). Le compteur ne descend jamais sous le premier visionnage.</td></tr>
         <tr><td>PATCH</td><td><code>/api/episodes/season/:seasonId/watched-all</code></td><td>Marque toute une saison vue.</td></tr>
         <tr><td>PATCH</td><td><code>/api/episodes/season/:seasonId/watched-up-to/:episodeNumber</code></td><td>Marque vus les épisodes jusqu'au numéro donné (rattrapage).</td></tr>
         <tr><td>POST</td><td><code>/api/episodes/:id/rating</code></td><td>Note un épisode.</td></tr>
