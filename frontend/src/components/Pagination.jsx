@@ -1,28 +1,29 @@
 import { useI18n } from '../i18n/LanguageContext.jsx';
 
-// Pages affichées : la première et la dernière, la page courante et ses deux voisines. Les pages sautées
-// deviennent « … ». Sept éléments au plus, quel que soit le nombre de pages.
-function pageItems(page, pageCount) {
-  const wanted = [...new Set([1, pageCount, page - 1, page, page + 1])]
-    .filter((p) => p >= 1 && p <= pageCount)
-    .sort((a, b) => a - b);
+// Neuf pages numérotées affichées et cliquables, puis « … » et la dernière page. Jusqu'à dix pages au total,
+// toutes sont numérotées (un « … » qui ne masquerait aucune page n'aurait pas de sens).
+const NUMBERED = 9;
 
+function pageItems(pageCount) {
+  const shown = pageCount <= NUMBERED + 1 ? pageCount : NUMBERED;
   const items = [];
-  wanted.forEach((p, i) => {
-    if (i > 0 && p - wanted[i - 1] > 1) items.push({ gap: true, key: `gap-${p}` });
+  for (let p = 1; p <= shown; p += 1) {
     items.push({ page: p, key: `page-${p}` });
-  });
+  }
+  if (shown < pageCount - 1) items.push({ gap: true, key: 'gap' });
+  if (shown < pageCount) items.push({ page: pageCount, key: `page-${pageCount}` });
   return items;
 }
 
-// Pagination compacte, dans le style du site (ambre pour la page active).
+// Pagination compacte, dans le style du site (ambre pour la page active). Les flèches restent disponibles
+// pour aller au-delà des pages affichées.
 export default function Pagination({ page, pageCount, onChange }) {
   const { t } = useI18n();
 
   if (pageCount <= 1) return null;
 
   const arrowClass =
-    'flex h-9 w-9 items-center justify-center rounded-md text-ink-muted transition hover:text-signal disabled:opacity-30 disabled:hover:text-ink-muted';
+    'flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-muted transition hover:text-signal disabled:opacity-30 disabled:hover:text-ink-muted';
 
   return (
     <nav aria-label={t('pagination.label')} className="mt-10 flex items-center justify-center gap-1 font-ui text-sm">
@@ -31,8 +32,8 @@ export default function Pagination({ page, pageCount, onChange }) {
         <span aria-hidden="true">←</span>
       </button>
 
-      <ul className="flex items-center gap-1">
-        {pageItems(page, pageCount).map((item) =>
+      <ul className="flex flex-wrap items-center justify-center gap-1">
+        {pageItems(pageCount).map((item) =>
           item.gap ? (
             <li key={item.key} aria-hidden="true" className="w-6 text-center text-ink-muted">
               …
