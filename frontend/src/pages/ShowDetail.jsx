@@ -22,17 +22,16 @@ export default function ShowDetail() {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const load = () => {
-    client.get(`/shows/${id}`).then((res) => {
-      setShow(res.data);
-      if (openSeason === null && res.data.seasons.length > 0) {
-        setOpenSeason(res.data.seasons[0].id);
-      }
-    });
+    client.get(`/shows/${id}`).then((res) => setShow(res.data));
   };
 
+  // La première saison s'ouvre à l'arrivée sur la fiche, une seule fois : les rechargements ne rouvrent
+  // pas une saison que l'utilisateur a refermée.
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    client.get(`/shows/${id}`).then((res) => {
+      setShow(res.data);
+      setOpenSeason(res.data.seasons.length > 0 ? res.data.seasons[0].id : null);
+    });
   }, [id]);
 
   if (!show) {
