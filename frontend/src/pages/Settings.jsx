@@ -164,15 +164,6 @@ export default function Settings() {
           <p className="mt-4 max-w-md text-ink-muted">{t('settings.subtitle')}</p>
         </header>
 
-        <section className="animate-rise mt-14" style={{ animationDelay: '60ms' }}>
-          <SectionTitle title={t('settings.emailTitle')} hint={t('settings.emailHint')} />
-          {user.email ? (
-            <p className="font-display text-xl text-paper break-all">{user.email}</p>
-          ) : (
-            <p className="text-sm text-ink-muted">{t('settings.emailNone')}</p>
-          )}
-        </section>
-
         <section className="animate-rise mt-14" style={{ animationDelay: '100ms' }}>
           <SectionTitle title={t('settings.photoTitle')} />
           <div className="flex items-center gap-6">
@@ -243,6 +234,16 @@ export default function Settings() {
             <SaveButton disabled={!canSaveUsername} busy={usernameBusy} />
             <Notice notice={usernameNotice} />
           </form>
+        </section>
+
+        {/* Adresse email : entre le pseudo et le mot de passe. Lecture seule pour l'instant. */}
+        <section className="animate-rise mt-14" style={{ animationDelay: '250ms' }}>
+          <SectionTitle title={t('settings.emailTitle')} hint={t('settings.emailHint')} />
+          {user.email ? (
+            <p className="font-display text-xl text-paper break-all">{user.email}</p>
+          ) : (
+            <p className="text-sm text-ink-muted">{t('settings.emailNone')}</p>
+          )}
         </section>
 
         <section className="animate-rise mt-14" style={{ animationDelay: '280ms' }}>
