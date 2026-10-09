@@ -217,7 +217,17 @@ export default function Settings() {
           </div>
         </section>
 
+        {/* Adresse email : au-dessus du pseudo. Lecture seule pour l'instant. */}
         <section className="animate-rise mt-14" style={{ animationDelay: '220ms' }}>
+          <SectionTitle title={t('settings.emailTitle')} hint={t('settings.emailHint')} />
+          {user.email ? (
+            <p className="font-display text-xl text-paper break-all">{user.email}</p>
+          ) : (
+            <p className="text-sm text-ink-muted">{t('settings.emailNone')}</p>
+          )}
+        </section>
+
+        <section className="animate-rise mt-14" style={{ animationDelay: '250ms' }}>
           <SectionTitle title={t('settings.usernameTitle')} />
           <form onSubmit={submitUsername} className="space-y-6">
             <AuthField
@@ -234,16 +244,6 @@ export default function Settings() {
             <SaveButton disabled={!canSaveUsername} busy={usernameBusy} />
             <Notice notice={usernameNotice} />
           </form>
-        </section>
-
-        {/* Adresse email : entre le pseudo et le mot de passe. Lecture seule pour l'instant. */}
-        <section className="animate-rise mt-14" style={{ animationDelay: '250ms' }}>
-          <SectionTitle title={t('settings.emailTitle')} hint={t('settings.emailHint')} />
-          {user.email ? (
-            <p className="font-display text-xl text-paper break-all">{user.email}</p>
-          ) : (
-            <p className="text-sm text-ink-muted">{t('settings.emailNone')}</p>
-          )}
         </section>
 
         <section className="animate-rise mt-14" style={{ animationDelay: '280ms' }}>
