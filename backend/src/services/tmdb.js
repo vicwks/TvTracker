@@ -60,6 +60,12 @@ export async function getSeasonDetails(tmdbId, seasonNumber) {
   return data;
 }
 
+// Groupe d'épisodes TMDB : un découpage alternatif des épisodes (ici, en saisons réelles).
+export async function getEpisodeGroup(groupId) {
+  const { data } = await tmdb.get(`/tv/episode_group/${groupId}`);
+  return data;
+}
+
 export async function getMovieDetails(tmdbId) {
   const { data } = await tmdb.get(`/movie/${tmdbId}`);
   return data;
