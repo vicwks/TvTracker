@@ -210,12 +210,14 @@ export default function Discover() {
                     opening === item.tmdb_id ? (
                       <p className="text-sm text-ink-muted">{t('discover.opening')}</p>
                     ) : addedIds.has(item.tmdb_id) ? (
-                      <p className="text-sm text-signal">✓ {t('card.followed')}</p>
+                      <p className="w-full rounded-md border border-signal/60 py-2 text-center text-sm text-signal">
+                        ✓ {t('card.followed')}
+                      </p>
                     ) : (
                       <button
                         type="button"
                         onClick={() => addToTracking(item)}
-                        className="text-sm text-signal underline-offset-4 hover:underline"
+                        className="w-full rounded-md bg-signal py-2 text-sm font-medium text-signal-ink transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-12px_rgba(245,165,36,0.7)] active:scale-[0.98]"
                       >
                         {t('card.follow')}
                       </button>
